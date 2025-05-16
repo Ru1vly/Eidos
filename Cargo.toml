@@ -1,0 +1,20 @@
+[workspace]
+members = [
+	"src", # The main binary create (CLI)
+	"lib_core", # Core library create
+	"lib_chat", # Chat library create
+	"lib_translate", # Translate library create
+]
+
+# Optional on later updates: Workspace-level dependecies (useful for shared dependicies)
+[workspace.dependencies]
+anyhow = "1.0.75" # Example: A common error handling create
+
+[profile.release]
+opt-level = 2 # Optimization level for release builds
+lto = "thin" # Link time optimization
+codegen-units = 1 # Reduce code bload
+panic = "abort" # Reduce binary size
+
+[profile.dev]
+opt-level = 0 # Lower optimization for faster builds
