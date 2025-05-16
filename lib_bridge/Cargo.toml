@@ -1,0 +1,12 @@
+[package]
+name = "lib_bridge"
+version = "0.0.0"
+edition = "2025"
+
+# authors = ["Kerem Yiğit ru1vly@protonmail.com"]
+# license = "GPL-3.0 license"
+# description = "Request router library for Eidos Project"
+# repository = "https://github.com/Ru1vly/Eidos"
+
+[dependencies]
+thiserror = { workspace = true } # Go ./Eidos/Cargo.toml for detailed informations
