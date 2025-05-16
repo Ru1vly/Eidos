@@ -1,20 +1,33 @@
 [workspace]
+resolver = "2" # Modern feature analyzer
 members = [
 	"src", # The main binary create (CLI)
 	"lib_core", # Core library create
 	"lib_chat", # Chat library create
 	"lib_translate", # Translate library create
+	"lib_bridge", # Bridge library create
 ]
 
 # Optional on later updates: Workspace-level dependecies (useful for shared dependicies)
 [workspace.dependencies]
+clap = { version = "4.5.4", features = ["derive"] } # For command line arguments
+thiserror = "1.0.61" # Structured error management
 anyhow = "1.0.75" # Example: A common error handling create
+tokio = { version = "1.37.0", features = ["full"] } # Asyncronized processes.
+reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] } # For HTTP requests. (API Connections)
+serde = { version = "1.0.197", features = ["derive"]} # Json (de)serialization
+serde_json = "1.0.115"
+log = "0.4.21" # Improved logging features.
+env_logger = "0.11.3" # Tracing
 
+# --- Compile Profiles ---
 [profile.release]
 opt-level = 2 # Optimization level for release builds
 lto = "thin" # Link time optimization
 codegen-units = 1 # Reduce code bload
 panic = "abort" # Reduce binary size
+strip = true # reduces binary size
 
 [profile.dev]
 opt-level = 0 # Lower optimization for faster builds
+debug = true # Adds debug informations.
