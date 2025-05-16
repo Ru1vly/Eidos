@@ -1,0 +1,17 @@
+[package]
+name = "lib_chat"
+version = "0.0.0"
+edition = "2021"
+
+# authors = ["Kerem Yiğit <ru1vly@protonmail.com>"]
+# license = "GPL-3.0 license"
+# description = "Chatting and Searching API integration library"
+# repository = "https://github.com/Ru1vly/Eidos"
+
+[dependencies]
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] } # Common tokio features
+reqwest = { workspace = true, features = ["json", "rustls-tls"] } # HTTP request with async support
+serde = { workspace = true, features = ["derive"] } # serialize and deserialize JSON data
+serde_json = { workspace = true } # JSON support for serde
+log = { workspace = true, optional = true } # Autologging in lib_chat
