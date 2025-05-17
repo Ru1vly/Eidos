@@ -8,7 +8,7 @@ This Rust project introduces an AI-driven command-line interface (CLI) for Linux
 * **Intelligent Command Execution:** The AI interprets user request and translates them into thje appropriate shell commands.
 * **Web Search Integration:** Seamlessly perform internet searches directly from the command line.
 
-## Architecture
+## General Architecture
 
 The project is structured with the following key components:
 
@@ -17,6 +17,7 @@ The project is structured with the following key components:
 * **Decider Bridge:** Reads optimized prompt and declares which AI Agent suitable for the given task.
 * **Executioner:** Encompasses the core logic for command execution, including input sanitization and interaction with the operating system.
 * **Explorer:** Provides the functionality to conduct internet searches utilizing the Llama API.
+
 
 ## Getting Started
 
