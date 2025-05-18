@@ -1,0 +1,9 @@
+[package]
+name = "lib_translate"
+version = "0.1.0"
+edition = "2025"
+description = "Translation module for Eidos project, handling language detection and translation between user language and dedicated prompt language"
+
+[dependencies]
+thiserror = { workspace = true } # thiserror for CoreError enum in lib_core
+log = { workspace = true, optional = true } # Detailed logging
