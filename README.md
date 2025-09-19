@@ -4,7 +4,7 @@ This Rust project introduces an AI-driven command-line interface (CLI) for Linux
 
 ## Features
 
-* **Natural Language Interface:** Engage with the terminal through intuitive, human-like language 
+* **Natural Mutli Language Interface:** Engage with the terminal through intuitive, human-like at any language. 
 * **Intelligent Command Execution:** The AI interprets user request and translates them into thje appropriate shell commands.
 * **Web Search Integration:** Seamlessly perform internet searches directly from the command line.
 
