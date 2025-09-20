@@ -9,6 +9,8 @@ edition = "2025"
 # repository = "https://github.com/Ru1vly/Eidos"
 
 [dependencies]
+tract-onnx = "0.21.2"
+tokenizers = "0.19.1"
 thiserror = { workspace = true } # thiserror for CoreError enum in lib_core
 candle-core = { workspace = true } # Includes model architectures and helpers such as Gemma
 tokenizers = { workspace = true } # Tokenizer library Candle uses
