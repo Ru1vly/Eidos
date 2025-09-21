@@ -4,3 +4,6 @@ Cargo.lock file
 Cargo.lock
 
 /lm-command-finetuned/*
+
+ggml-model-f16.gguf
+ggml-model-q4-k-m.gguf
