@@ -13,6 +13,7 @@ tract-onnx = "0.21.2"
 tokenizers = "0.19.1"
 thiserror = { workspace = true } # thiserror for CoreError enum in lib_core
 candle-core = { workspace = true } # Includes model architectures and helpers such as Gemma
+candle-gguf = "0.6.0"
 tokenizers = { workspace = true } # Tokenizer library Candle uses
 serde = { workspace = true, features ["derive"], optional = true } # Local configuration files
 serde_json = { workspace = true, optional = true }

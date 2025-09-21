@@ -1,0 +1,9 @@
+[package]
+name = "lib_qa"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lib_core = { path = "../lib_core" }
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4.0", features = ["derive"] }
