@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from datasets import load_dataset
 from transformers.convert_graph_to_onnx import convert
@@ -62,7 +63,7 @@ def train_and_export_model():
 
     # --- 5. Export to ONNX ---
     print("Exporting model to ONNX...")
-    onnx_output_path = "model.onnx"
+    onnx_output_path = Path("model.onnx")
     convert(
         framework="pt",
         model=output_dir,
