@@ -1,7 +1,7 @@
 [package]
 name = "lib_translate"
 version = "0.1.0"
-edition = "2025"
+edition = "2021"
 description = "Translation module for Eidos project, handling language detection and translation between user language and dedicated prompt language"
 
 [dependencies]

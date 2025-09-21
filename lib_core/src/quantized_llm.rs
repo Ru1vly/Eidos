@@ -1,39 +1,33 @@
-
+use anyhow::{Error as E, Result};
 use candle_core::{Device, Tensor};
-use candle_gguf::gguf_file;
 use candle_transformers::generation::LogitsProcessor;
 use candle_transformers::models::quantized_llama as model;
-use thiserror::Error;
 use tokenizers::Tokenizer;
+use std::fs::File;
+use std::io::BufReader;
+use candle_transformers::models::llama::Llama;
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum QuantizedLlmError {
-    #[error("Failed to load model: {0}")]
-    ModelLoad(String),
-    #[error("Failed to load tokenizer: {0}")]
-    TokenizerLoad(String),
-    #[error("Inference failed: {0}")]
-    Inference(String),
+    ModelLoad(E),
+    TokenizerLoad(E),
+    Inference(E),
 }
 
 pub struct QuantizedLlm {
-    model: model::Llama,
+    model: Llama,
     device: Device,
     tokenizer: Tokenizer,
     logits_processor: LogitsProcessor,
 }
 
 impl QuantizedLlm {
-    pub fn new(model_path: &str, tokenizer_path: &str) -> Result<Self, QuantizedLlmError> {
+    pub fn new(model_path: &str, tokenizer_path: &str) -> Result<Self> {
         let device = Device::Cpu;
-
-        let mut file =
-            std::fs::File::open(model_path).map_err(|e| QuantizedLlmError::ModelLoad(e.to_string()))?;
-        let model_weights =
-            model::Llama::load(&mut file, &device).map_err(|e| QuantizedLlmError::ModelLoad(e.to_string()))?;
-
-        let tokenizer = Tokenizer::from_file(tokenizer_path)
-            .map_err(|e| QuantizedLlmError::TokenizerLoad(e.to_string()))?;
+        let mut file = File::open(model_path)?;
+        let mut model_reader = BufReader::new(file);
+        let model_weights = Llama::load(&mut model_reader, &device)?;
+        let tokenizer = Tokenizer::from_file(tokenizer_path).map_err(E::msg)?;
 
         let logits_processor = LogitsProcessor::new(299792458, Some(0.0), None);
 
@@ -45,27 +39,18 @@ impl QuantizedLlm {
         })
     }
 
-    pub fn generate(&mut self, prompt: &str, max_tokens: usize) -> Result<String, QuantizedLlmError> {
-        let tokens = self
-            .tokenizer
-            .encode(prompt, true)
-            .map_err(|e| QuantizedLlmError::Inference(e.to_string()))?
-            .get_ids()
-            .to_vec();
-
+    pub fn generate(&mut self, prompt: &str, max_tokens: usize) -> Result<String> {
+        let tokens = self.tokenizer.encode(prompt, true)?.get_ids().to_vec();
         let mut generated_tokens = Vec::new();
         let mut token_ids = tokens;
 
         for _ in 0..max_tokens {
             let context_size = token_ids.len();
             let context = &token_ids[..];
-            let input = Tensor::new(context, &self.device)
-                .unwrap()
-                .unsqueeze(0)
-                .unwrap();
-            let logits = self.model.forward(&input, context_size - 1).unwrap();
-            let logits = logits.squeeze(0).unwrap();
-            let next_token = self.logits_processor.sample(&logits).unwrap();
+            let input = Tensor::new(context, &self.device)?.unsqueeze(0)?;
+            let logits = self.model.forward(&input, context_size - 1)?;
+            let logits = logits.squeeze(0)?;
+            let next_token = self.logits_processor.sample(&logits)?;
             
             token_ids.push(next_token);
             generated_tokens.push(next_token);
@@ -75,11 +60,7 @@ impl QuantizedLlm {
             }
         }
 
-        let output = self
-            .tokenizer
-            .decode(&generated_tokens, true)
-            .map_err(|e| QuantizedLlmError::Inference(e.to_string()))?;
-
+        let output = self.tokenizer.decode(&generated_tokens, true).map_err(E::msg)?;
         Ok(output)
     }
 }

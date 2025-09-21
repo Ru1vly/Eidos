@@ -1,7 +1,7 @@
 [package]
 name = "lib_core"
 version = "0.0.0"
-edition = "2025"
+edition = "2021"
 
 # authors = ["Kerem Yiğit <ru1vly@protonmail.com>"]
 # license = "GPL-3.0 license"
@@ -10,13 +10,11 @@ edition = "2025"
 
 [dependencies]
 tract-onnx = "0.21.2"
-tokenizers = "0.19.1"
-thiserror = { workspace = true } # thiserror for CoreError enum in lib_core
-candle-core = { workspace = true } # Includes model architectures and helpers such as Gemma
-candle-gguf = "0.6.0"
-tokenizers = { workspace = true } # Tokenizer library Candle uses
-serde = { workspace = true, features ["derive"], optional = true } # Local configuration files
+thiserror = { workspace = true }
+candle-core = { workspace = true }
+candle-transformers = { workspace = true }
+tokenizers = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
 serde_json = { workspace = true, optional = true }
-log = { workspace = true, optional = true } # Detailed logging
-
-# regex = { workspace = true, optional = true } ## for NLP, text processing and additional libraries.
+log = { workspace = true, optional = true }
+anyhow = { workspace = true }

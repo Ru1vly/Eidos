@@ -9,39 +9,39 @@ lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }
 lib_translate = { path = "lib_translate" }
 
+[patch.crates-io]
+rand = { version = "0.9.0" }
+
 [workspace]
-resolver = "2" # Modern feature analyzer
+resolver = "2"
 members = [
-	"lib_core", # Core library create
-	"lib_chat", # Chat library create
-	"lib_translate", # Translate library create
-	"lib_bridge", # Bridge library create
+	"lib_core",
+	"lib_chat",
+	"lib_translate",
+	"lib_bridge",
 ]
 
-# Optional on later updates: Workspace-level dependecies (useful for shared dependicies)
 [workspace.dependencies]
-clap = { version = "4.5.4", features = ["derive"] } # For command line arguments
-thiserror = "1.0.61" # Structured error management
-anyhow = "1.0.75" # Example: A common error handling create
-tokio = { version = "1.37.0", features = ["full"] } # Asyncronized processes.
-reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] } # For HTTP requests. (API Connections)
-serde = { version = "1.0.197", features = ["derive"]} # Json (de)serialization
+clap = { version = "4.5.4", features = ["derive"] }
+thiserror = "1.0.61"
+anyhow = "1.0.75"
+tokio = { version = "1.37.0", features = ["full"] }
+reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] }
+serde = { version = "1.0.197", features = ["derive"]}
 serde_json = "1.0.115"
-log = "0.4.21" # Improved logging features.
-env_logger = "0.11.3" # Tracing
-candle-core = { workspace = true } # Hugging Face Candle Libraries for local run
-candle-transformers = { workspace = true }
-tokenizers = { workspace = true } # Tokenizers that Gemma uses
-# regex = { workspace = true }
+log = "0.4.21"
+env_logger = "0.11.3"
+candle-core = "0.6.0"
+candle-transformers = "0.6.0"
+tokenizers = "0.19.1"
 
-# --- Compile Profiles ---
 [profile.release]
-opt-level = 2 # Optimization level for release builds
-lto = "thin" # Link time optimization
-codegen-units = 1 # Reduce code bload
-panic = "abort" # Reduce binary size
-strip = true # reduces binary size
+opt-level = 2
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
 
 [profile.dev]
-opt-level = 0 # Lower optimization for faster builds
-debug = true # Adds debug informations.
+opt-level = 0
+debug = true
