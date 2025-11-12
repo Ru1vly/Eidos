@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { workspace = true }
 lib_bridge = { path = "lib_bridge" }
 lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }
