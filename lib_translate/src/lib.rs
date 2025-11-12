@@ -5,8 +5,8 @@ impl Translate {
         Self
     }
 
-- [ ]     pub fn run(&self) {
-        println!("Translate is running");
+    pub fn run(&self, text: &str) {
+        println!("Translate is running with text: {}", text);
     }
 }
 

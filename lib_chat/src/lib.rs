@@ -5,8 +5,8 @@ impl Chat {
         Self
     }
 
-    pub fn run(&self) {
-        println!("Chat is running");
+    pub fn run(&self, text: &str) {
+        println!("Chat is running with text: {}", text);
     }
 }
 
