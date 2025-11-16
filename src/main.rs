@@ -39,19 +39,27 @@ enum Commands {
     },
 }
 
-fn main() -> Result<()> {
-    let cli = Cli::parse();
+/// Set up the Bridge with all request handlers
+fn setup_bridge() -> Bridge {
+    let mut bridge = Bridge::new();
 
-    match cli.command {
-        Commands::Chat { text } => {
+    // Register Chat handler
+    bridge.register(
+        Request::Chat,
+        Box::new(|text: &str| {
             let mut chat = Chat::new();
-            chat.run(&text);
-        }
-        Commands::Core { prompt } => {
+            chat.run(text);
+            Ok(())
+        }),
+    );
+
+    // Register Core handler
+    bridge.register(
+        Request::Core,
+        Box::new(|prompt: &str| {
             // Load configuration
-            let config = Config::load().map_err(|e| {
-                crate::error::AppError::InvalidInputError(format!("Config error: {}", e))
-            })?;
+            let config = Config::load()
+                .map_err(|e| format!("Config error: {}", e))?;
 
             // Validate configuration
             if let Err(e) = config.validate() {
@@ -64,18 +72,54 @@ fn main() -> Result<()> {
             }
 
             // Create Core instance with config
-            let core = Core::new(&config.model_path, &config.tokenizer_path).map_err(|e| {
-                crate::error::AppError::AIModelError(format!("Failed to load model: {}", e))
-            })?;
+            let core = Core::new(&config.model_path, &config.tokenizer_path)
+                .map_err(|e| format!("Failed to load model: {}", e))?;
 
-            match core.run(&prompt) {
-                Ok(output) => println!("{}", output),
-                Err(e) => eprintln!("Core Error: {}", e),
+            match core.run(prompt) {
+                Ok(output) => {
+                    println!("{}", output);
+                    Ok(())
+                }
+                Err(e) => {
+                    eprintln!("Core Error: {}", e);
+                    Ok(())
+                }
             }
+        }),
+    );
+
+    // Register Translate handler
+    bridge.register(
+        Request::Translate,
+        Box::new(|text: &str| {
+            let translate = Translate::new();
+            translate.run(text);
+            Ok(())
+        }),
+    );
+
+    bridge
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    // Initialize the bridge with all handlers
+    let bridge = setup_bridge();
+
+    // Route commands through the bridge
+    match cli.command {
+        Commands::Chat { text } => {
+            bridge.route(Request::Chat, &text)
+                .map_err(|e| crate::error::AppError::InvalidInputError(e))?;
+        }
+        Commands::Core { prompt } => {
+            bridge.route(Request::Core, &prompt)
+                .map_err(|e| crate::error::AppError::InvalidInputError(e))?;
         }
         Commands::Translate { text } => {
-            let translate = Translate::new();
-            translate.run(&text);
+            bridge.route(Request::Translate, &text)
+                .map_err(|e| crate::error::AppError::InvalidInputError(e))?;
         }
     }
 

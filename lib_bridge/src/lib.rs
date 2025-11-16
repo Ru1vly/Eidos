@@ -7,8 +7,11 @@ pub enum Request {
     Translate,
 }
 
+/// Handler function that takes input text and returns a Result
+pub type Handler = Box<dyn Fn(&str) -> Result<(), String>>;
+
 pub struct Bridge {
-    router: HashMap<Request, Box<dyn Fn()>>,
+    router: HashMap<Request, Handler>,
 }
 
 impl Bridge {
@@ -18,13 +21,17 @@ impl Bridge {
         }
     }
 
-    pub fn register(&mut self, request: Request, f: Box<dyn Fn()>) {
-        self.router.insert(request, f);
+    /// Register a handler for a specific request type
+    pub fn register(&mut self, request: Request, handler: Handler) {
+        self.router.insert(request, handler);
     }
 
-    pub fn route(&self, request: Request) {
-        if let Some(f) = self.router.get(&request) {
-            f();
+    /// Route a request to its registered handler with input
+    pub fn route(&self, request: Request, input: &str) -> Result<(), String> {
+        if let Some(handler) = self.router.get(&request) {
+            handler(input)
+        } else {
+            Err(format!("No handler registered for request: {:?}", request))
         }
     }
 }
