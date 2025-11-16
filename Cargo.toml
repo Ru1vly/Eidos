@@ -10,6 +10,8 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 toml = "0.8"
+log = { workspace = true }
+env_logger = { workspace = true }
 lib_bridge = { path = "lib_bridge" }
 lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }

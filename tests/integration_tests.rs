@@ -8,7 +8,7 @@ fn test_cli_help() {
     cmd.arg("--help");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("A multifunctional application"));
+        .stdout(predicate::str::contains("AI-powered CLI for Linux"));
 }
 
 #[test]
@@ -70,7 +70,7 @@ fn test_missing_subcommand() {
     let mut cmd = Command::cargo_bin("eidos").unwrap();
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("Usage: eidos <COMMAND>"));
+        .stderr(predicate::str::contains("Usage: eidos [OPTIONS] <COMMAND>"));
 }
 
 #[test]
