@@ -44,7 +44,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Commands::Chat { text } => {
-            let chat = Chat::new();
+            let mut chat = Chat::new();
             chat.run(&text);
         }
         Commands::Core { prompt } => {
