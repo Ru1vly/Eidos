@@ -15,6 +15,15 @@ lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }
 lib_translate = { path = "lib_translate" }
 
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.0"
+criterion = "0.5"
+
+[[bench]]
+name = "core_benchmark"
+harness = false
+
 [workspace]
 resolver = "2"
 members = [
