@@ -1,0 +1,8 @@
+# Eidos Configuration File
+# Copy this file to eidos.toml and update the paths
+
+# Path to the ONNX model file
+model_path = "model.onnx"
+
+# Path to the tokenizer JSON file
+tokenizer_path = "tokenizer.json"

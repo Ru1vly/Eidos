@@ -1,5 +1,7 @@
+mod config;
 mod error;
 
+use crate::config::Config;
 use crate::error::Result;
 use clap::{Parser, Subcommand};
 use lib_bridge::{Bridge, Request};
@@ -46,7 +48,26 @@ fn main() -> Result<()> {
             chat.run(&text);
         }
         Commands::Core { prompt } => {
-            let core = Core::default();
+            // Load configuration
+            let config = Config::load().map_err(|e| {
+                crate::error::AppError::InvalidInputError(format!("Config error: {}", e))
+            })?;
+
+            // Validate configuration
+            if let Err(e) = config.validate() {
+                eprintln!("Configuration validation failed: {}", e);
+                eprintln!(
+                    "Tip: Set EIDOS_MODEL_PATH and EIDOS_TOKENIZER_PATH environment variables"
+                );
+                eprintln!("  or create an eidos.toml config file");
+                return Ok(());
+            }
+
+            // Create Core instance with config
+            let core = Core::new(&config.model_path, &config.tokenizer_path).map_err(|e| {
+                crate::error::AppError::AIModelError(format!("Failed to load model: {}", e))
+            })?;
+
             match core.run(&prompt) {
                 Ok(output) => println!("{}", output),
                 Err(e) => eprintln!("Core Error: {}", e),

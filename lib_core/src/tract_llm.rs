@@ -1,9 +1,9 @@
+use anyhow::anyhow;
+use ndarray::arr1;
 use std::path::Path;
 use std::process::Command;
 use tokenizers::Tokenizer;
 use tract_onnx::prelude::*;
-use ndarray::arr1;
-use anyhow::anyhow;
 
 pub struct Core {
     model: TypedRunnableModel<TypedModel>,
@@ -16,7 +16,7 @@ impl Core {
             .model_for_path(model_path)?
             .into_optimized()?
             .into_runnable()?;
-        
+
         let tokenizer = Tokenizer::from_file(tokenizer_path).map_err(|e| anyhow!(e))?;
 
         Ok(Self { model, tokenizer })
@@ -32,7 +32,10 @@ impl Core {
         let output_tensor = result[0].to_array_view::<i64>()?;
         let output_ids: Vec<u32> = output_tensor.iter().map(|&id| id as u32).collect();
 
-        let command = self.tokenizer.decode(&output_ids, true).map_err(|e| anyhow!(e))?;
+        let command = self
+            .tokenizer
+            .decode(&output_ids, true)
+            .map_err(|e| anyhow!(e))?;
 
         Ok(command)
     }
@@ -55,29 +58,66 @@ impl Core {
         }
     }
 
-    fn is_safe_command(&self, command: &str) -> bool {
+    /// Validates if a command is safe to execute
+    /// This is public for testing purposes
+    pub fn is_safe_command(&self, command: &str) -> bool {
         // Whitelist of safe base commands
         let allowed_commands = [
-            "ls", "pwd", "echo", "cat", "head", "tail", "grep", "find", "wc",
-            "date", "whoami", "hostname", "uname", "df", "du", "free", "top",
-            "ps", "which", "whereis", "file", "stat", "touch", "mkdir",
+            "ls", "pwd", "echo", "cat", "head", "tail", "grep", "find", "wc", "date", "whoami",
+            "hostname", "uname", "df", "du", "free", "top", "ps", "which", "whereis", "file",
+            "stat", "touch", "mkdir",
         ];
 
         // Dangerous patterns that should never be allowed
         let dangerous_patterns = [
-            "rm", "rmdir", "dd", "mkfs", "fdisk", "shutdown", "reboot", "halt",
-            "poweroff", "init", "kill", "killall", "pkill", "chown", "chmod",
-            "chgrp", "useradd", "userdel", "groupadd", "groupdel", "passwd",
-            "su", "sudo", "doas", "curl", "wget", "nc", "netcat", "telnet",
-            "ssh", "scp", "sftp", "rsync", "mount", "umount", "mkswap",
-            "swapon", "swapoff", "iptables", "ip6tables", "nft",
+            "rm",
+            "rmdir",
+            "dd",
+            "mkfs",
+            "fdisk",
+            "shutdown",
+            "reboot",
+            "halt",
+            "poweroff",
+            "init",
+            "kill",
+            "killall",
+            "pkill",
+            "chown",
+            "chmod",
+            "chgrp",
+            "useradd",
+            "userdel",
+            "groupadd",
+            "groupdel",
+            "passwd",
+            "su",
+            "sudo",
+            "doas",
+            "curl",
+            "wget",
+            "nc",
+            "netcat",
+            "telnet",
+            "ssh",
+            "scp",
+            "sftp",
+            "rsync",
+            "mount",
+            "umount",
+            "mkswap",
+            "swapon",
+            "swapoff",
+            "iptables",
+            "ip6tables",
+            "nft",
         ];
 
         // Shell metacharacters and injection patterns
         let shell_injection_patterns = [
-            "`", "$(", "${", "$((", ">>", "<<<", "&>", "|&", "&&", "||",
-            ";", "\n", "\r", "\\", "'", "\"", "*", "?", "[", "]", "{", "}",
-            "!", "~", "^", "<(", ">(", "../", "/dev/", "/proc/", "/sys/",
+            "`", "$(", "${", "$((", ">>", "<<<", "&>", "|&", "&&", "||", "|", ";", "\n", "\r",
+            "\\", "'", "\"", "*", "?", "[", "]", "{", "}", "!", "~", "^", "<(", ">(", "../",
+            "/dev/", "/proc/", "/sys/", ">", "&",
         ];
 
         let cmd_lower = command.to_lowercase();
@@ -85,15 +125,18 @@ impl Core {
 
         // Check for dangerous patterns
         if dangerous_patterns.iter().any(|&p| {
-            cmd_lower.contains(p) ||
-            cmd_trimmed.starts_with(p) ||
-            cmd_lower.contains(&format!("/{}", p))
+            cmd_lower.contains(p)
+                || cmd_trimmed.starts_with(p)
+                || cmd_lower.contains(&format!("/{}", p))
         }) {
             return false;
         }
 
         // Check for shell injection attempts
-        if shell_injection_patterns.iter().any(|&p| command.contains(p)) {
+        if shell_injection_patterns
+            .iter()
+            .any(|&p| command.contains(p))
+        {
             return false;
         }
 
@@ -130,7 +173,7 @@ impl Default for Core {
     fn default() -> Self {
         let model_path = "model.onnx";
         let tokenizer_path = "tokenizer.json";
-        
+
         Core::new(model_path, tokenizer_path).expect("Failed to create Core instance")
     }
 }
