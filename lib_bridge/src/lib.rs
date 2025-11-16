@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Request {
     Chat,
     Core,
@@ -25,5 +26,11 @@ impl Bridge {
         if let Some(f) = self.router.get(&request) {
             f();
         }
+    }
+}
+
+impl Default for Bridge {
+    fn default() -> Self {
+        Self::new()
     }
 }

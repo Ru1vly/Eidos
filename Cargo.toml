@@ -5,13 +5,13 @@ edition = "2021"
 
 [dependencies]
 clap = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true }
+serde_json = { workspace = true }
 lib_bridge = { path = "lib_bridge" }
 lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }
 lib_translate = { path = "lib_translate" }
-
-[patch.crates-io]
-rand = { version = "0.9.0" }
 
 [workspace]
 resolver = "2"
@@ -32,9 +32,9 @@ serde = { version = "1.0.197", features = ["derive"]}
 serde_json = "1.0.115"
 log = "0.4.21"
 env_logger = "0.11.3"
-candle-core = "0.6.0"
-candle-transformers = "0.6.0"
-tokenizers = "0.19.1"
+candle-core = "0.9.1"
+candle-transformers = "0.9.1"
+tokenizers = "0.20"
 
 [profile.release]
 opt-level = 2

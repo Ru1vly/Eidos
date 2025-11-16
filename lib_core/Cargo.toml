@@ -9,7 +9,9 @@ edition = "2021"
 # repository = "https://github.com/Ru1vly/Eidos"
 
 [dependencies]
-tract-onnx = "0.21.2"
+tract-onnx = "0.21"
+tract-core = "0.21"
+ndarray = "0.16"
 thiserror = { workspace = true }
 candle-core = { workspace = true }
 candle-transformers = { workspace = true }

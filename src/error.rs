@@ -3,34 +3,34 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
-    #[error("Giriş/Çıkış hatası: {0}")]
+    #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("Ağ isteği hatası: {0}")]
+    #[error("Network request error: {0}")]
     NetworkError(#[from] reqwest::Error),
 
-    #[error("JSON ayrıştırma hatası: {0}")]
+    #[error("JSON parsing error: {0}")]
     SerdeError(#[from] serde_json::Error),
 
-    #[error("Dil algılanamadı")]
+    #[error("Language detection failed")]
     LanguageDetectionError,
 
-    #[error("Çeviri başarısız: {0}")]
+    #[error("Translation failed: {0}")]
     TranslationError(String),
 
-    #[error("AI model etkileşim hatası: {0}")]
+    #[error("AI model interaction error: {0}")]
     AIModelError(String),
 
-    #[error("Komut çalıştırma hatası: {0}")]
+    #[error("Command execution error: {0}")]
     CommandExecutionError(String),
 
-    #[error("Geçersiz kullanıcı girdisi: {0}")]
+    #[error("Invalid user input: {0}")]
     InvalidInputError(String),
 
-    #[error("API anahtarı bulunamadı veya geçersiz")]
+    #[error("API key not found or invalid")]
     ApiKeyError,
 
-    #[error("Bilinmeyen bir hata oluştu")]
+    #[error("An unknown error occurred")]
     UnknownError,
 }
 
