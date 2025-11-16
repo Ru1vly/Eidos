@@ -47,7 +47,7 @@ Eidos is an AI-powered command-line interface that brings natural language proce
 ### One-Line Install
 
 ```bash
-curl -sSf https://raw.githubusercontent.com/yourusername/eidos/main/install.sh | bash
+curl -sSf https://raw.githubusercontent.com/Ru1vly/eidos/main/install.sh | bash
 ```
 
 ### Docker
@@ -60,7 +60,7 @@ docker run --rm eidos chat "Hello, world!"
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/eidos
+git clone https://github.com/Ru1vly/eidos
 cd eidos
 make build-release
 make install
@@ -301,7 +301,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for production deployment guides.
 
 ```bash
 # Clone and enter directory
-git clone https://github.com/yourusername/eidos
+git clone https://github.com/Ru1vly/eidos
 cd eidos
 
 # Install development tools
@@ -379,8 +379,8 @@ cargo bench
 
 ## 🤝 Community
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/eidos/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/eidos/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Ru1vly/eidos/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Ru1vly/eidos/discussions)
 - **Contributions**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 📄 License
@@ -397,8 +397,8 @@ Eidos is licensed under the GNU General Public License v3.0. See [LICENSE](LICEN
 ## 📞 Support
 
 - **Documentation**: [docs/](docs/)
-- **Bug Reports**: [Create an issue](https://github.com/yourusername/eidos/issues/new)
-- **Feature Requests**: [Start a discussion](https://github.com/yourusername/eidos/discussions/new)
+- **Bug Reports**: [Create an issue](https://github.com/Ru1vly/eidos/issues/new)
+- **Feature Requests**: [Start a discussion](https://github.com/Ru1vly/eidos/discussions/new)
 
 ---
 

@@ -95,7 +95,7 @@
 
 | Task | Issue | Impact | Time |
 |------|-------|--------|------|
-| 11.1 | "yourusername" placeholders | Unprofessional | 30m |
+| 11.1 | "Ru1vly" placeholders | Unprofessional | 30m |
 | 11.2 | "Production-ready" lies | Misleading | 2h |
 | 11.3 | 2 training scripts | Confusing | 1h |
 | 11.4 | No CHANGELOG | Can't track | 2h |
@@ -133,7 +133,7 @@ Day 10-11: Phase 11 (Documentation)
 - ❌ New runtime every chat
 - ❌ "Production-ready" but isn't
 - ❌ 38 tests only
-- ❌ "yourusername" in docs
+- ❌ "Ru1vly" in docs
 - ⚠️ 6 unused error types
 - ⚠️ Pattern-only security
 
@@ -194,7 +194,7 @@ Can be completed in <2 hours total:
 
 1. **15 minutes:** Add log timestamps (#7.3)
 2. **30 minutes:** Fix byte/char bug (#7.2)
-3. **30 minutes:** Fix "yourusername" (#11.1)
+3. **30 minutes:** Fix "Ru1vly" (#11.1)
 4. **15 minutes:** Remove dead code (#9.1)
 
 **Total:** 1.5 hours for 4 fixes and immediate credibility boost

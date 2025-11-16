@@ -151,7 +151,7 @@ We welcome various types of contributions:
 
 ### Finding Work
 
-- Check [Issues](https://github.com/yourusername/eidos/issues) labeled `good first issue`
+- Check [Issues](https://github.com/Ru1vly/eidos/issues) labeled `good first issue`
 - Look for `help wanted` labels
 - Review open pull requests
 - Propose new features in discussions
@@ -564,14 +564,14 @@ eidos/
 ## Getting Help
 
 - **Documentation**: See [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/eidos/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/eidos/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Ru1vly/eidos/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Ru1vly/eidos/discussions)
 - **Chat**: (if available)
 
 ## Recognition
 
 Contributors are recognized in:
-- [Contributors](https://github.com/yourusername/eidos/graphs/contributors) page
+- [Contributors](https://github.com/Ru1vly/eidos/graphs/contributors) page
 - Release notes
 - Special thanks in README
 

@@ -490,11 +490,11 @@ use shell_words::split;
 ### Tasks
 
 #### 11.1: Fix Placeholder Links
-**Issue:** "yourusername" in all URLs
+**Issue:** "Ru1vly" in all URLs
 
 **Solution:**
 ```bash
-find . -name "*.md" -exec sed -i 's/yourusername/Ru1vly/g' {} \;
+find . -name "*.md" -exec sed -i 's/Ru1vly/Ru1vly/g' {} \;
 ```
 
 **Files to modify:**

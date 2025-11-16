@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 CONFIG_DIR="${CONFIG_DIR:-$HOME/.config/eidos}"
 VERSION="${VERSION:-0.1.0}"
-REPO_URL="https://github.com/yourusername/eidos"
+REPO_URL="https://github.com/Ru1vly/eidos"
 
 # Print colored message
 print_message() {

@@ -54,10 +54,11 @@ fn validate_input(text: &str, max_length: usize) -> std::result::Result<(), Stri
     }
 
     // Check length
-    if text.len() > max_length {
+    let char_count = text.chars().count();
+    if char_count > max_length {
         return Err(format!(
-            "Input too long ({} chars, max {})",
-            text.len(),
+            "Input too long ({} characters, max {})",
+            char_count,
             max_length
         ));
     }
@@ -67,7 +68,7 @@ fn validate_input(text: &str, max_length: usize) -> std::result::Result<(), Stri
         warn!("Input contains control characters, sanitizing");
     }
 
-    debug!("Input validation passed: {} chars", text.len());
+    debug!("Input validation passed: {} characters", char_count);
     Ok(())
 }
 
@@ -82,7 +83,8 @@ fn init_logging(verbose: bool, debug_mode: bool) {
     };
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or(log_level))
-        .format_timestamp(None)
+        .format_timestamp_millis()
+        .format_module_path(true)
         .init();
 
     debug!("Logging initialized at {} level", log_level);

@@ -475,9 +475,9 @@ export LLM_API_URL=https://api.example.com/v1
 ## Support & Resources
 
 - **Documentation**: [docs/](.)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/eidos/issues)
+- **Issues**: [GitHub Issues](https://github.com/Ru1vly/eidos/issues)
 - **Security**: Report to security@example.com
-- **Community**: [Discussions](https://github.com/yourusername/eidos/discussions)
+- **Community**: [Discussions](https://github.com/Ru1vly/eidos/discussions)
 
 ## Version History
 

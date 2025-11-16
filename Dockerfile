@@ -80,4 +80,4 @@ LABEL org.opencontainers.image.title="Eidos" \
       org.opencontainers.image.description="AI-powered CLI for Linux command generation" \
       org.opencontainers.image.version="0.1.0" \
       org.opencontainers.image.authors="EIDOS Team" \
-      org.opencontainers.image.source="https://github.com/yourusername/eidos"
+      org.opencontainers.image.source="https://github.com/Ru1vly/eidos"

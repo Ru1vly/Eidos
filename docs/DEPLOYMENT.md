@@ -16,13 +16,13 @@ This guide covers various ways to deploy and distribute Eidos.
 ### One-Line Install
 
 ```bash
-curl -sSf https://raw.githubusercontent.com/yourusername/eidos/main/install.sh | bash
+curl -sSf https://raw.githubusercontent.com/Ru1vly/eidos/main/install.sh | bash
 ```
 
 Or download and inspect first:
 
 ```bash
-curl -sSf https://raw.githubusercontent.com/yourusername/eidos/main/install.sh -o install.sh
+curl -sSf https://raw.githubusercontent.com/Ru1vly/eidos/main/install.sh -o install.sh
 chmod +x install.sh
 ./install.sh
 ```
@@ -35,7 +35,7 @@ Download from releases page:
 
 ```bash
 # Linux x86_64
-wget https://github.com/yourusername/eidos/releases/download/v0.1.0/eidos-linux-x86_64.tar.gz
+wget https://github.com/Ru1vly/eidos/releases/download/v0.1.0/eidos-linux-x86_64.tar.gz
 tar -xzf eidos-linux-x86_64.tar.gz
 sudo mv eidos-linux-x86_64 /usr/local/bin/eidos
 ```
@@ -43,13 +43,13 @@ sudo mv eidos-linux-x86_64 /usr/local/bin/eidos
 ### Method 2: Cargo Install
 
 ```bash
-cargo install --git https://github.com/yourusername/eidos
+cargo install --git https://github.com/Ru1vly/eidos
 ```
 
 ### Method 3: Build from Source
 
 ```bash
-git clone https://github.com/yourusername/eidos
+git clone https://github.com/Ru1vly/eidos
 cd eidos
 make build-release
 sudo make install
@@ -150,7 +150,7 @@ sudo pacman -S base-devel openssl git
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/eidos
+git clone https://github.com/Ru1vly/eidos
 cd eidos
 
 # Build release binary
