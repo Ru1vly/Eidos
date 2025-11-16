@@ -1,0 +1,106 @@
+{"prompt": "list all files", "command": "ls -la"}
+{"prompt": "show all files", "command": "ls -la"}
+{"prompt": "list files in current directory", "command": "ls"}
+{"prompt": "show current directory", "command": "pwd"}
+{"prompt": "what directory am i in", "command": "pwd"}
+{"prompt": "print working directory", "command": "pwd"}
+{"prompt": "show my location", "command": "pwd"}
+{"prompt": "where am i", "command": "pwd"}
+{"prompt": "find Python files", "command": "find . -name '*.py'"}
+{"prompt": "find all Python scripts", "command": "find . -name '*.py'"}
+{"prompt": "locate py files", "command": "find . -name '*.py'"}
+{"prompt": "search for Python files", "command": "find . -name '*.py'"}
+{"prompt": "find JavaScript files", "command": "find . -name '*.js'"}
+{"prompt": "find all JS files", "command": "find . -name '*.js'"}
+{"prompt": "find Rust files", "command": "find . -name '*.rs'"}
+{"prompt": "show the contents of file.txt", "command": "cat file.txt"}
+{"prompt": "display file.txt", "command": "cat file.txt"}
+{"prompt": "read file.txt", "command": "cat file.txt"}
+{"prompt": "print file.txt", "command": "cat file.txt"}
+{"prompt": "show first 10 lines of file.txt", "command": "head file.txt"}
+{"prompt": "display top 10 lines of file.txt", "command": "head file.txt"}
+{"prompt": "show last 10 lines of file.txt", "command": "tail file.txt"}
+{"prompt": "display bottom lines of file.txt", "command": "tail file.txt"}
+{"prompt": "count lines in file.txt", "command": "wc -l file.txt"}
+{"prompt": "how many lines in file.txt", "command": "wc -l file.txt"}
+{"prompt": "number of lines in file.txt", "command": "wc -l file.txt"}
+{"prompt": "count words in file.txt", "command": "wc -w file.txt"}
+{"prompt": "search for error in log.txt", "command": "grep error log.txt"}
+{"prompt": "find error in log.txt", "command": "grep error log.txt"}
+{"prompt": "look for error in log.txt", "command": "grep error log.txt"}
+{"prompt": "search for pattern in file.txt", "command": "grep pattern file.txt"}
+{"prompt": "show disk usage", "command": "df -h"}
+{"prompt": "display disk space", "command": "df -h"}
+{"prompt": "check disk space", "command": "df -h"}
+{"prompt": "show memory usage", "command": "free -h"}
+{"prompt": "display memory", "command": "free -h"}
+{"prompt": "check RAM usage", "command": "free -h"}
+{"prompt": "show running processes", "command": "ps aux"}
+{"prompt": "list processes", "command": "ps aux"}
+{"prompt": "display processes", "command": "ps aux"}
+{"prompt": "who am i", "command": "whoami"}
+{"prompt": "show current user", "command": "whoami"}
+{"prompt": "what is my username", "command": "whoami"}
+{"prompt": "show current date", "command": "date"}
+{"prompt": "what is the date", "command": "date"}
+{"prompt": "display date and time", "command": "date"}
+{"prompt": "show calendar", "command": "cal"}
+{"prompt": "display calendar", "command": "cal"}
+{"prompt": "show this month", "command": "cal"}
+{"prompt": "create directory test", "command": "mkdir test"}
+{"prompt": "make a folder called test", "command": "mkdir test"}
+{"prompt": "create folder test", "command": "mkdir test"}
+{"prompt": "copy file1.txt to file2.txt", "command": "cp file1.txt file2.txt"}
+{"prompt": "duplicate file1.txt as file2.txt", "command": "cp file1.txt file2.txt"}
+{"prompt": "move file1.txt to file2.txt", "command": "mv file1.txt file2.txt"}
+{"prompt": "rename file1.txt to file2.txt", "command": "mv file1.txt file2.txt"}
+{"prompt": "show environment variables", "command": "env"}
+{"prompt": "list environment variables", "command": "env"}
+{"prompt": "display env vars", "command": "env"}
+{"prompt": "show PATH variable", "command": "echo $PATH"}
+{"prompt": "display PATH", "command": "echo $PATH"}
+{"prompt": "print PATH", "command": "echo $PATH"}
+{"prompt": "show file permissions", "command": "ls -l"}
+{"prompt": "list files with permissions", "command": "ls -l"}
+{"prompt": "display file details", "command": "ls -l"}
+{"prompt": "sort lines in file.txt", "command": "sort file.txt"}
+{"prompt": "order lines in file.txt", "command": "sort file.txt"}
+{"prompt": "show unique lines in file.txt", "command": "sort file.txt | uniq"}
+{"prompt": "remove duplicate lines from file.txt", "command": "sort file.txt | uniq"}
+{"prompt": "find files modified today", "command": "find . -mtime 0"}
+{"prompt": "find recently modified files", "command": "find . -mtime 0"}
+{"prompt": "find large files", "command": "find . -size +100M"}
+{"prompt": "find files bigger than 100MB", "command": "find . -size +100M"}
+{"prompt": "find empty files", "command": "find . -empty"}
+{"prompt": "locate empty files", "command": "find . -empty"}
+{"prompt": "show file type of file.txt", "command": "file file.txt"}
+{"prompt": "what type is file.txt", "command": "file file.txt"}
+{"prompt": "identify file.txt", "command": "file file.txt"}
+{"prompt": "compare file1.txt and file2.txt", "command": "diff file1.txt file2.txt"}
+{"prompt": "show differences between file1.txt and file2.txt", "command": "diff file1.txt file2.txt"}
+{"prompt": "show system information", "command": "uname -a"}
+{"prompt": "display system info", "command": "uname -a"}
+{"prompt": "what system am i on", "command": "uname -a"}
+{"prompt": "show kernel version", "command": "uname -r"}
+{"prompt": "display kernel version", "command": "uname -r"}
+{"prompt": "show hostname", "command": "hostname"}
+{"prompt": "what is my hostname", "command": "hostname"}
+{"prompt": "display hostname", "command": "hostname"}
+{"prompt": "show uptime", "command": "uptime"}
+{"prompt": "how long has system been running", "command": "uptime"}
+{"prompt": "display uptime", "command": "uptime"}
+{"prompt": "show last 20 lines of file.txt", "command": "tail -n 20 file.txt"}
+{"prompt": "display last 20 lines of file.txt", "command": "tail -n 20 file.txt"}
+{"prompt": "show first 5 lines of file.txt", "command": "head -n 5 file.txt"}
+{"prompt": "display first 5 lines of file.txt", "command": "head -n 5 file.txt"}
+{"prompt": "count files in current directory", "command": "ls | wc -l"}
+{"prompt": "how many files are here", "command": "ls | wc -l"}
+{"prompt": "number of files", "command": "ls | wc -l"}
+{"prompt": "find text files", "command": "find . -name '*.txt'"}
+{"prompt": "locate all txt files", "command": "find . -name '*.txt'"}
+{"prompt": "search for text files", "command": "find . -name '*.txt'"}
+{"prompt": "find markdown files", "command": "find . -name '*.md'"}
+{"prompt": "locate markdown files", "command": "find . -name '*.md'"}
+{"prompt": "show hidden files", "command": "ls -la"}
+{"prompt": "list hidden files", "command": "ls -la"}
+{"prompt": "display all files including hidden", "command": "ls -la"}
