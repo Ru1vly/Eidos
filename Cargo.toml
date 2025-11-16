@@ -12,6 +12,8 @@ serde_json = { workspace = true }
 toml = "0.8"
 log = { workspace = true }
 env_logger = { workspace = true }
+lazy_static = { workspace = true }
+parking_lot = { workspace = true }
 lib_bridge = { path = "lib_bridge" }
 lib_chat = { path = "lib_chat" }
 lib_core = { path = "lib_core" }
@@ -45,6 +47,9 @@ serde = { version = "1.0.197", features = ["derive"]}
 serde_json = "1.0.115"
 log = "0.4.21"
 env_logger = "0.11.3"
+lazy_static = "1.5"
+parking_lot = "0.12"
+once_cell = "1.19"
 candle-core = "0.9.1"
 candle-transformers = "0.9.1"
 tokenizers = "0.20"

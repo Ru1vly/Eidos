@@ -5,6 +5,16 @@ pub mod history;
 use crate::api::{ApiClient, ApiProvider};
 use crate::error::Result;
 use crate::history::{ConversationHistory, Message};
+use once_cell::sync::Lazy;
+use tokio::runtime::Runtime;
+
+/// Global shared tokio runtime for synchronous chat operations
+///
+/// Creating a new Runtime on every request is expensive (~10-50ms overhead).
+/// This static runtime is created once and reused for all chat operations.
+static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
+    Runtime::new().expect("Failed to create tokio runtime")
+});
 
 pub struct Chat {
     client: Option<ApiClient>,
@@ -55,11 +65,11 @@ impl Chat {
 
     /// Synchronous wrapper that blocks on async send
     /// This is the method called from main.rs
+    ///
+    /// Uses a shared global runtime to avoid the overhead of creating
+    /// a new runtime on every chat request (~10-50ms saved per call).
     pub fn run(&mut self, text: &str) {
-        // Create a simple runtime for this single operation
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-
-        match runtime.block_on(self.send_async(text)) {
+        match RUNTIME.block_on(self.send_async(text)) {
             Ok(response) => {
                 println!("Assistant: {}", response);
             }
