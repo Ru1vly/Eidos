@@ -6,7 +6,9 @@
 
 Eidos is an AI-powered command-line interface that brings natural language processing to your Linux terminal. Built with Rust, Eidos leverages large language models to translate natural language into safe shell commands, provide intelligent chat assistance, and offer multi-language translation.
 
-🚀 **Project Status**: **Production-Ready** - Comprehensive testing, documentation, and distribution infrastructure complete.
+🚀 **Project Status**: **Beta** - Core functionality complete with comprehensive testing and documentation. Performance optimizations implemented (model caching, shared runtime).
+
+⚠️ **Important**: Eidos requires trained ONNX or GGUF models to function. See [Model Training Guide](docs/MODEL_GUIDE.md) for instructions on training your own models, or wait for pre-trained model releases.
 
 ## ✨ Features
 

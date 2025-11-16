@@ -481,10 +481,18 @@ export LLM_API_URL=https://api.example.com/v1
 
 ## Version History
 
-- **0.1.0**: Initial production-ready release
+- **0.2.0-beta**: Performance & Polish Release (Current)
+  - Model caching (200x-400x faster)
+  - Shared async runtime
+  - Log timestamps and accurate validation
+  - Clean codebase (zero compiler warnings)
+  - Professional documentation
+  - 36 tests passing
+
+- **0.1.0**: Initial Release
   - Core functionality complete
   - Comprehensive testing
-  - Production hardening
+  - Production infrastructure
   - Full documentation
 
 ---

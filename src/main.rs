@@ -88,7 +88,7 @@ fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Res
 #[derive(Parser, Debug)]
 #[clap(
     author = "EIDOS",
-    version = "0.1.0",
+    version = "0.2.0-beta",
     about = "AI-powered CLI for Linux - Natural language to shell commands"
 )]
 struct Cli {
@@ -279,7 +279,7 @@ fn main() -> Result<()> {
     // Initialize logging
     init_logging(cli.verbose, cli.debug);
 
-    info!("Eidos v0.1.0 starting");
+    info!("Eidos v0.2.0-beta starting");
     debug!("Command: {:?}", cli.command);
 
     // Initialize the bridge with all handlers
