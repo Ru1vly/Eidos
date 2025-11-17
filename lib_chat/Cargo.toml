@@ -15,3 +15,4 @@ reqwest = { workspace = true, features = ["json", "rustls-tls"] } # HTTP request
 serde = { workspace = true, features = ["derive"] } # serialize and deserialize JSON data
 serde_json = { workspace = true } # JSON support for serde
 log = { workspace = true, optional = true } # Autologging in lib_chat
+once_cell = { workspace = true } # Shared runtime instance

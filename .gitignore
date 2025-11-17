@@ -7,3 +7,10 @@ Cargo.lock
 
 ggml-model-f16.gguf
 ggml-model-q4_k_m.gguf
+
+# Model files
+model.onnx
+tokenizer.json
+
+# Config file (use eidos.toml.example as template)
+eidos.toml

@@ -1,0 +1,44 @@
+# Build artifacts
+target/
+*.o
+*.so
+*.a
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Documentation (not needed in runtime)
+docs/
+*.md
+!README.md
+
+# Test files
+datasets/
+scripts/
+test_data/
+
+# Model files (should be mounted as volumes)
+*.onnx
+*.gguf
+tokenizer.json
+model.bin
+
+# Config files (user-specific)
+eidos.toml
+
+# Misc
+.env
+.DS_Store
+Thumbs.db

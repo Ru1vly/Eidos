@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  eidos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eidos:latest
+    container_name: eidos
+
+    # Mount models and config
+    volumes:
+      - ./models:/home/eidos/models:ro
+      - ./eidos.toml:/home/eidos/eidos.toml:ro
+
+    # Environment variables
+    environment:
+      - EIDOS_MODEL_PATH=/home/eidos/models/model.onnx
+      - EIDOS_TOKENIZER_PATH=/home/eidos/models/tokenizer.json
+      # Chat API configuration (optional)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+
+    # For development: override entrypoint to get shell access
+    # entrypoint: /bin/bash
+
+    # Network
+    networks:
+      - eidos-network
+
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Optional: Local Ollama instance for chat functionality
+  ollama:
+    image: ollama/ollama:latest
+    container_name: eidos-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - eidos-network
+    profiles:
+      - with-ollama
+
+networks:
+  eidos-network:
+    driver: bridge
+
+volumes:
+  ollama-data:

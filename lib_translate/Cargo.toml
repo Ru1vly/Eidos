@@ -5,5 +5,10 @@ edition = "2021"
 description = "Translation module for Eidos project, handling language detection and translation between user language and dedicated prompt language"
 
 [dependencies]
-thiserror = { workspace = true } # thiserror for CoreError enum in lib_core
-log = { workspace = true, optional = true } # Detailed logging
+thiserror = { workspace = true }
+log = { workspace = true, optional = true }
+lingua = "1.6"  # Fast and accurate language detection
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+reqwest = { workspace = true, features = ["json", "rustls-tls"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
