@@ -1,9 +1,9 @@
+use crate::validation::is_safe_command;
 use anyhow::anyhow;
 use ndarray::arr1;
 use std::path::Path;
 use tokenizers::Tokenizer;
 use tract_onnx::prelude::*;
-use crate::validation::is_safe_command;
 
 pub struct Core {
     model: TypedRunnableModel<TypedModel>,

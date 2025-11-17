@@ -32,7 +32,9 @@ fn test_chat_command() {
 
     // Should mention chat or API configuration
     assert!(
-        stderr.contains("Chat Error") || stderr.contains("Tip: Configure an API provider") || output.status.success(),
+        stderr.contains("Chat Error")
+            || stderr.contains("Tip: Configure an API provider")
+            || output.status.success(),
         "Expected chat error message or success, got: {}",
         stderr
     );
@@ -56,7 +58,8 @@ fn test_translate_command() {
     assert!(
         has_success_output || has_api_error,
         "Expected either successful translation or graceful API error, got stdout: {}, stderr: {}",
-        stdout, stderr
+        stdout,
+        stderr
     );
 }
 
@@ -71,7 +74,8 @@ fn test_core_command_without_config() {
 
     // Should mention configuration
     assert!(
-        stderr.contains("Configuration validation failed") || stderr.contains("Tip: Set EIDOS_MODEL_PATH"),
+        stderr.contains("Configuration validation failed")
+            || stderr.contains("Tip: Set EIDOS_MODEL_PATH"),
         "Expected config error message, got: {}",
         stderr
     );
@@ -107,7 +111,8 @@ fn test_chat_command_empty_text() {
 #[test]
 fn test_translate_command_english_text() {
     let mut cmd = Command::cargo_bin("eidos").unwrap();
-    cmd.arg("translate").arg("This is English text that is long enough to be detected properly.");
+    cmd.arg("translate")
+        .arg("This is English text that is long enough to be detected properly.");
 
     let output = cmd.output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);

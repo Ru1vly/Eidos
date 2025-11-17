@@ -7,8 +7,8 @@ pub fn is_safe_command(command: &str) -> bool {
     // Whitelist of safe base commands
     let allowed_commands = [
         "ls", "pwd", "echo", "cat", "head", "tail", "grep", "find", "wc", "date", "whoami",
-        "hostname", "uname", "df", "du", "free", "top", "ps", "which", "whereis", "file",
-        "stat", "touch", "mkdir",
+        "hostname", "uname", "df", "du", "free", "top", "ps", "which", "whereis", "file", "stat",
+        "touch", "mkdir",
     ];
 
     // Dangerous patterns that should never be allowed
@@ -58,9 +58,9 @@ pub fn is_safe_command(command: &str) -> bool {
 
     // Shell metacharacters and injection patterns
     let shell_injection_patterns = [
-        "`", "$(", "${", "$((", ">>", "<<<", "&>", "|&", "&&", "||", "|", ";", "\n", "\r",
-        "\\", "'", "\"", "*", "?", "[", "]", "{", "}", "!", "~", "^", "<(", ">(", "../",
-        "/dev/", "/proc/", "/sys/", ">", "&",
+        "`", "$(", "${", "$((", ">>", "<<<", "&>", "|&", "&&", "||", "|", ";", "\n", "\r", "\\",
+        "'", "\"", "*", "?", "[", "]", "{", "}", "!", "~", "^", "<(", ">(", "../", "/dev/",
+        "/proc/", "/sys/", ">", "&",
     ];
 
     let cmd_lower = command.to_lowercase();
@@ -149,11 +149,7 @@ mod tests {
         ];
 
         for cmd in dangerous_commands {
-            assert!(
-                !is_safe_command(cmd),
-                "Expected '{}' to be blocked",
-                cmd
-            );
+            assert!(!is_safe_command(cmd), "Expected '{}' to be blocked", cmd);
         }
     }
 
@@ -169,16 +165,12 @@ mod tests {
             "ls > /dev/null",
             "ls >> file",
             "ls ../../../etc",
-            "ls 'test'",  // Blocked because of quotes
-            "ls *",       // Blocked because of wildcard
+            "ls 'test'", // Blocked because of quotes
+            "ls *",      // Blocked because of wildcard
         ];
 
         for cmd in injection_attempts {
-            assert!(
-                !is_safe_command(cmd),
-                "Expected '{}' to be blocked",
-                cmd
-            );
+            assert!(!is_safe_command(cmd), "Expected '{}' to be blocked", cmd);
         }
     }
 
@@ -193,11 +185,7 @@ mod tests {
         ];
 
         for cmd in path_traversal {
-            assert!(
-                !is_safe_command(cmd),
-                "Expected '{}' to be blocked",
-                cmd
-            );
+            assert!(!is_safe_command(cmd), "Expected '{}' to be blocked", cmd);
         }
     }
 
@@ -207,33 +195,25 @@ mod tests {
         let safe_ops = vec![
             "cat file.txt",
             "ls /tmp",
-            "stat /etc/hostname",  // stat is allowed, /etc/hostname is a safe read-only file
+            "stat /etc/hostname", // stat is allowed, /etc/hostname is a safe read-only file
         ];
 
         for cmd in safe_ops {
-            assert!(
-                is_safe_command(cmd),
-                "Expected '{}' to be allowed",
-                cmd
-            );
+            assert!(is_safe_command(cmd), "Expected '{}' to be allowed", cmd);
         }
     }
 
     #[test]
     fn test_encoding_tricks_blocked() {
         let encoding_tricks = vec![
-            "ls \\x2f",           // hex encoded /
-            "ls \\0",             // octal
-            "lsIFS=test",         // IFS manipulation
+            "ls \\x2f",   // hex encoded /
+            "ls \\0",     // octal
+            "lsIFS=test", // IFS manipulation
             "ls${IFS}test",
         ];
 
         for cmd in encoding_tricks {
-            assert!(
-                !is_safe_command(cmd),
-                "Expected '{}' to be blocked",
-                cmd
-            );
+            assert!(!is_safe_command(cmd), "Expected '{}' to be blocked", cmd);
         }
     }
 

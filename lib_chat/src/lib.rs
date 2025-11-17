@@ -12,9 +12,8 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all chat operations.
-static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
-    Runtime::new().expect("Failed to create tokio runtime")
-});
+static RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
 
 pub struct Chat {
     client: Option<ApiClient>,

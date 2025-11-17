@@ -40,7 +40,10 @@ lazy_static! {
 /// # Thread Safety
 /// Uses RwLock to allow multiple concurrent reads while ensuring
 /// exclusive access during model loading.
-fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Result<Arc<Core>, String> {
+fn get_or_load_model(
+    model_path: &str,
+    tokenizer_path: &str,
+) -> std::result::Result<Arc<Core>, String> {
     // Fast path: Check if model is already cached with read lock
     {
         let cache = MODEL_CACHE.read();
@@ -131,13 +134,15 @@ fn validate_input(text: &str, max_length: usize) -> std::result::Result<(), Stri
     if char_count > max_length {
         return Err(format!(
             "Input too long ({} characters, max {})",
-            char_count,
-            max_length
+            char_count, max_length
         ));
     }
 
     // Check for control characters (except newlines/tabs)
-    if text.chars().any(|c| c.is_control() && c != '\n' && c != '\t') {
+    if text
+        .chars()
+        .any(|c| c.is_control() && c != '\n' && c != '\t')
+    {
         warn!("Input contains control characters, sanitizing");
     }
 
@@ -204,11 +209,10 @@ fn setup_bridge() -> Bridge {
 
             // Load configuration
             debug!("Loading configuration");
-            let config = Config::load()
-                .map_err(|e| {
-                    error!("Configuration loading failed: {}", e);
-                    format!("Config error: {}", e)
-                })?;
+            let config = Config::load().map_err(|e| {
+                error!("Configuration loading failed: {}", e);
+                format!("Config error: {}", e)
+            })?;
 
             // Validate configuration
             config.validate().map_err(|e| {
@@ -231,16 +235,19 @@ fn setup_bridge() -> Bridge {
             debug!("Configuration valid, loading model");
 
             // Get Core instance from cache (or load if not cached)
-            let model_path_str = config.model_path.to_str()
+            let model_path_str = config
+                .model_path
+                .to_str()
                 .ok_or_else(|| "Invalid model path encoding".to_string())?;
-            let tokenizer_path_str = config.tokenizer_path.to_str()
+            let tokenizer_path_str = config
+                .tokenizer_path
+                .to_str()
                 .ok_or_else(|| "Invalid tokenizer path encoding".to_string())?;
 
-            let core = get_or_load_model(model_path_str, tokenizer_path_str)
-                .map_err(|e| {
-                    error!("Model loading failed: {}", e);
-                    e
-                })?;
+            let core = get_or_load_model(model_path_str, tokenizer_path_str).map_err(|e| {
+                error!("Model loading failed: {}", e);
+                e
+            })?;
 
             // Generate command (validation happens in Core)
             match core.generate_command(prompt) {
@@ -256,7 +263,9 @@ fn setup_bridge() -> Bridge {
                         eprintln!("❌ Safety Error: Generated command is not safe to execute");
                         eprintln!("Generated: {}", command);
                         eprintln!();
-                        eprintln!("The model generated a command that contains dangerous patterns.");
+                        eprintln!(
+                            "The model generated a command that contains dangerous patterns."
+                        );
                         eprintln!("This is a safety feature to prevent harmful commands.");
                         Err("Generated command failed safety validation".to_string())
                     }
@@ -335,11 +344,10 @@ fn main() -> Result<()> {
             }
 
             debug!("Routing to chat handler");
-            bridge.route(Request::Chat, text)
-                .map_err(|e| {
-                    error!("Chat routing failed: {}", e);
-                    crate::error::AppError::InvalidInput(e)
-                })
+            bridge.route(Request::Chat, text).map_err(|e| {
+                error!("Chat routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
         Commands::Core { ref prompt } => {
             // Validate input (max 1000 chars for prompts)
@@ -350,11 +358,10 @@ fn main() -> Result<()> {
             }
 
             debug!("Routing to core handler");
-            bridge.route(Request::Core, prompt)
-                .map_err(|e| {
-                    error!("Core routing failed: {}", e);
-                    crate::error::AppError::InvalidInput(e)
-                })
+            bridge.route(Request::Core, prompt).map_err(|e| {
+                error!("Core routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
         Commands::Translate { ref text } => {
             // Validate input (max 5000 chars for translation)
@@ -365,11 +372,10 @@ fn main() -> Result<()> {
             }
 
             debug!("Routing to translate handler");
-            bridge.route(Request::Translate, text)
-                .map_err(|e| {
-                    error!("Translate routing failed: {}", e);
-                    crate::error::AppError::InvalidInput(e)
-                })
+            bridge.route(Request::Translate, text).map_err(|e| {
+                error!("Translate routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
     };
 

@@ -12,9 +12,8 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all translation operations.
-static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
-    Runtime::new().expect("Failed to create tokio runtime")
-});
+static RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
 
 pub struct Translate {
     translator: Option<Translator>,
@@ -25,7 +24,9 @@ impl Translate {
     pub fn new() -> Self {
         let translator = Translator::from_env().ok();
         if translator.is_none() {
-            eprintln!("Warning: Using mock translator. Set LIBRETRANSLATE_URL for real translation");
+            eprintln!(
+                "Warning: Using mock translator. Set LIBRETRANSLATE_URL for real translation"
+            );
             // Use mock translator as fallback
             return Self {
                 translator: Some(Translator::new(TranslatorProvider::Mock)),
@@ -42,7 +43,11 @@ impl Translate {
     }
 
     /// Detect language and translate if needed
-    pub async fn detect_and_translate_async(&self, text: &str, target_lang: &str) -> Result<TranslationResult> {
+    pub async fn detect_and_translate_async(
+        &self,
+        text: &str,
+        target_lang: &str,
+    ) -> Result<TranslationResult> {
         // Detect source language
         let source_lang = detect_language_code(text)?;
 
@@ -63,7 +68,9 @@ impl Translate {
             .as_ref()
             .ok_or_else(|| error::TranslateError::NoTranslatorError)?;
 
-        let translated = translator.translate(text, &source_lang, target_lang).await?;
+        let translated = translator
+            .translate(text, &source_lang, target_lang)
+            .await?;
 
         Ok(TranslationResult {
             original: text.to_string(),
