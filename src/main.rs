@@ -1,6 +1,7 @@
 mod config;
 mod constants;
 mod error;
+mod output;
 
 use crate::config::Config;
 use crate::constants::*;
@@ -103,6 +104,9 @@ struct Cli {
 
     #[clap(short, long, global = true, help = "Enable debug logging")]
     debug: bool,
+
+    #[clap(short = 'o', long, global = true, value_name = "FORMAT", help = "Output format: text (default) or json")]
+    output_format: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -112,10 +116,16 @@ enum Commands {
         #[clap(help = "The input text for the chat")]
         text: String,
     },
-    #[clap(about = "Core functionality")]
+    #[clap(about = "Generate shell command from natural language prompt")]
     Core {
-        #[clap(help = "The prompt for the core model")]
+        #[clap(help = "The natural language prompt describing desired command")]
         prompt: String,
+
+        #[clap(short = 'n', long, default_value = "1", help = "Number of alternative commands to generate")]
+        alternatives: usize,
+
+        #[clap(short = 'e', long, help = "Include explanation of what the command does")]
+        explain: bool,
     },
     #[clap(about = "Translate text")]
     Translate {
@@ -351,7 +361,7 @@ fn main() -> Result<()> {
                 crate::error::AppError::InvalidInput(e)
             })
         }
-        Commands::Core { ref prompt } => {
+        Commands::Core { ref prompt, alternatives: _, explain: _ } => {
             // Validate input (max 1000 chars for prompts)
             if let Err(e) = validate_input(prompt, MAX_CORE_PROMPT_LENGTH) {
                 error!("Input validation failed: {}", e);
