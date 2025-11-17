@@ -56,11 +56,22 @@ candle-transformers = "0.9.1"
 tokenizers = "0.20"
 
 [profile.release]
-opt-level = 2
+opt-level = 3
 lto = "thin"
 codegen-units = 1
 panic = "abort"
 strip = true
+
+# Maximum performance profile (slower build, ~15% faster runtime)
+[profile.release-max]
+inherits = "release"
+lto = "fat"
+
+# Minimal binary size profile
+[profile.release-compact]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
 
 [profile.dev]
 opt-level = 0

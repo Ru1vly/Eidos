@@ -1,7 +1,9 @@
 mod config;
+mod constants;
 mod error;
 
 use crate::config::Config;
+use crate::constants::*;
 use crate::error::Result;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
@@ -337,7 +339,7 @@ fn main() -> Result<()> {
     let result = match cli.command {
         Commands::Chat { ref text } => {
             // Validate input (max 10000 chars for chat)
-            if let Err(e) = validate_input(text, 10000) {
+            if let Err(e) = validate_input(text, MAX_CHAT_INPUT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
                 return Err(crate::error::AppError::InvalidInput(e));
@@ -351,7 +353,7 @@ fn main() -> Result<()> {
         }
         Commands::Core { ref prompt } => {
             // Validate input (max 1000 chars for prompts)
-            if let Err(e) = validate_input(prompt, 1000) {
+            if let Err(e) = validate_input(prompt, MAX_CORE_PROMPT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
                 return Err(crate::error::AppError::InvalidInput(e));
@@ -365,7 +367,7 @@ fn main() -> Result<()> {
         }
         Commands::Translate { ref text } => {
             // Validate input (max 5000 chars for translation)
-            if let Err(e) = validate_input(text, 5000) {
+            if let Err(e) = validate_input(text, MAX_TRANSLATE_INPUT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
                 return Err(crate::error::AppError::InvalidInput(e));

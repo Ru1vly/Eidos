@@ -1,10 +1,43 @@
 // Command validation module
 // Provides security validation for generated shell commands
 
-/// Validates if a command is safe to display to users
-/// This prevents generating dangerous commands that could harm the system
+/// Validates if a command is safe to display to users.
+///
+/// This is the **primary security gate** for Eidos. It prevents generating commands
+/// that could harm the system through a defense-in-depth approach:
+///
+/// # Security Layers
+///
+/// 1. **Whitelist-only base commands** - Only 23 read-only commands allowed
+/// 2. **Dangerous command blocking** - 60+ destructive commands explicitly blocked
+/// 3. **Shell injection prevention** - All shell metacharacters rejected
+/// 4. **Path traversal protection** - Blocks `../`, `/dev/`, `/proc/`, `/sys/`
+/// 5. **Encoding attack prevention** - Blocks hex/octal encoded characters and IFS manipulation
+///
+/// # Design Philosophy
+///
+/// This validator errs on the side of **false positives** (rejecting safe commands)
+/// rather than false negatives (allowing dangerous commands). Commands are **NEVER**
+/// executed automatically - they are only displayed for user review.
+///
+/// # Examples
+///
+/// ```
+/// use lib_core::is_safe_command;
+///
+/// assert!(is_safe_command("ls -la"));
+/// assert!(is_safe_command("pwd"));
+/// assert!(!is_safe_command("rm -rf /"));
+/// assert!(!is_safe_command("ls && rm file"));
+/// ```
+///
+/// # See Also
+///
+/// - `docs/SAFETY.md` for full security rationale
+/// - `tests/` for comprehensive security test suite
 pub fn is_safe_command(command: &str) -> bool {
-    // Whitelist of safe base commands
+    // Whitelist of safe base commands that are read-only and don't modify system state.
+    // DO NOT add write commands. See SAFETY.md for rationale.
     let allowed_commands = [
         "ls", "pwd", "echo", "cat", "head", "tail", "grep", "find", "wc", "date", "whoami",
         "hostname", "uname", "df", "du", "free", "top", "ps", "which", "whereis", "file", "stat",
