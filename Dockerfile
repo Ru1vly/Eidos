@@ -72,12 +72,16 @@ ENV EIDOS_TOKENIZER_PATH=/home/eidos/tokenizer.json
 # Create volume mount points for models
 VOLUME ["/home/eidos/models"]
 
+# Health check to ensure the binary is functional
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD eidos --version || exit 1
+
 ENTRYPOINT ["eidos"]
 CMD ["--help"]
 
 # Labels
 LABEL org.opencontainers.image.title="Eidos" \
       org.opencontainers.image.description="AI-powered CLI for Linux command generation" \
-      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.version="0.2.0-beta" \
       org.opencontainers.image.authors="EIDOS Team" \
       org.opencontainers.image.source="https://github.com/Ru1vly/eidos"

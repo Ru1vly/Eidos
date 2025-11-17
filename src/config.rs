@@ -14,19 +14,38 @@ pub struct Config {
 
 impl Config {
     /// Load configuration from file, environment variables, or use defaults
+    ///
+    /// Priority order (highest to lowest):
+    /// 1. Environment variables (EIDOS_MODEL_PATH, EIDOS_TOKENIZER_PATH)
+    /// 2. Local config file (./eidos.toml)
+    /// 3. User config file (~/.config/eidos/eidos.toml)
+    /// 4. Built-in defaults
     pub fn load() -> Result<Self, String> {
-        // Priority 1: Try to load from config file
-        if let Ok(config) = Self::from_file("eidos.toml") {
-            return Ok(config);
-        }
-
-        // Priority 2: Try to load from environment variables
+        // Priority 1: Environment variables (highest priority)
         if let Ok(config) = Self::from_env() {
             return Ok(config);
         }
 
-        // Priority 3: Use defaults (will fail if files don't exist)
+        // Priority 2: Local config file
+        if let Ok(config) = Self::from_file("eidos.toml") {
+            return Ok(config);
+        }
+
+        // Priority 3: User config file
+        if let Some(user_config_path) = Self::get_user_config_path() {
+            if let Ok(config) = Self::from_file(&user_config_path.to_string_lossy()) {
+                return Ok(config);
+            }
+        }
+
+        // Priority 4: Use defaults (will fail validation if files don't exist)
         Ok(Self::default())
+    }
+
+    /// Get the path to the user config file (~/.config/eidos/eidos.toml)
+    fn get_user_config_path() -> Option<PathBuf> {
+        let home = env::var("HOME").ok()?;
+        Some(PathBuf::from(home).join(".config/eidos/eidos.toml"))
     }
 
     /// Load config from a TOML file

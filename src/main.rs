@@ -44,25 +44,23 @@ fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Res
     // Fast path: Check if model is already cached with read lock
     {
         let cache = MODEL_CACHE.read();
-        if cache.core.is_some()
-            && cache.model_path == model_path
-            && cache.tokenizer_path == tokenizer_path
-        {
-            debug!("Returning cached model instance (fast path)");
-            return Ok(cache.core.as_ref().unwrap().clone());
+        if let Some(ref core) = cache.core {
+            if cache.model_path == model_path && cache.tokenizer_path == tokenizer_path {
+                debug!("Returning cached model instance (fast path)");
+                return Ok(Arc::clone(core));
+            }
         }
     }
 
     // Slow path: Load model with write lock
     let mut cache = MODEL_CACHE.write();
 
-    // Double-check in case another thread loaded it while we waited
-    if cache.core.is_some()
-        && cache.model_path == model_path
-        && cache.tokenizer_path == tokenizer_path
-    {
-        debug!("Model loaded by another thread (double-check)");
-        return Ok(cache.core.as_ref().unwrap().clone());
+    // Double-check in case another thread loaded it while we waited for write lock
+    if let Some(ref core) = cache.core {
+        if cache.model_path == model_path && cache.tokenizer_path == tokenizer_path {
+            debug!("Model loaded by another thread (double-check)");
+            return Ok(Arc::clone(core));
+        }
     }
 
     info!("Loading model from disk (first request or config changed)");
@@ -78,7 +76,7 @@ fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Res
     info!("Model loaded successfully in {:.2}s", elapsed.as_secs_f64());
 
     let core_arc = Arc::new(core);
-    cache.core = Some(core_arc.clone());
+    cache.core = Some(Arc::clone(&core_arc));
     cache.model_path = model_path.to_string();
     cache.tokenizer_path = tokenizer_path.to_string();
 
@@ -177,10 +175,23 @@ fn setup_bridge() -> Bridge {
             debug!("Chat input: {}", text);
 
             let mut chat = Chat::new();
-            chat.run(text);
-
-            debug!("Chat request completed");
-            Ok(())
+            match chat.run(text) {
+                Ok(response) => {
+                    println!("Assistant: {}", response);
+                    debug!("Chat request completed successfully");
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("Chat request failed: {}", e);
+                    eprintln!("❌ Chat Error: {}", e);
+                    eprintln!();
+                    eprintln!("Tip: Configure an API provider:");
+                    eprintln!("  - OpenAI: export OPENAI_API_KEY=your-key");
+                    eprintln!("  - Ollama: export OLLAMA_HOST=http://localhost:11434");
+                    eprintln!("  - Custom: export LLM_API_URL=http://your-api");
+                    Err(e.to_string())
+                }
+            }
         }),
     );
 
@@ -200,7 +211,7 @@ fn setup_bridge() -> Bridge {
                 })?;
 
             // Validate configuration
-            if let Err(e) = config.validate() {
+            config.validate().map_err(|e| {
                 error!("Configuration validation failed: {}", e);
                 eprintln!("❌ Configuration Error: {}", e);
                 eprintln!();
@@ -214,8 +225,8 @@ fn setup_bridge() -> Bridge {
                 eprintln!("     tokenizer_path = \"/path/to/tokenizer.json\"");
                 eprintln!();
                 eprintln!("  3. See docs/MODEL_GUIDE.md for training your own model");
-                return Ok(());
-            }
+                e.to_string()
+            })?;
 
             debug!("Configuration valid, loading model");
 
@@ -231,13 +242,24 @@ fn setup_bridge() -> Bridge {
                     e
                 })?;
 
-            // Run inference
-            match core.run(prompt) {
-                Ok(output) => {
-                    info!("Command generated successfully");
-                    debug!("Generated command: {}", output);
-                    println!("{}", output);
-                    Ok(())
+            // Generate command (validation happens in Core)
+            match core.generate_command(prompt) {
+                Ok(command) => {
+                    // Validate that generated command is safe
+                    if core.is_safe_command(&command) {
+                        info!("Command generated and validated successfully");
+                        debug!("Generated command: {}", command);
+                        println!("{}", command);
+                        Ok(())
+                    } else {
+                        error!("Generated command failed safety validation");
+                        eprintln!("❌ Safety Error: Generated command is not safe to execute");
+                        eprintln!("Generated: {}", command);
+                        eprintln!();
+                        eprintln!("The model generated a command that contains dangerous patterns.");
+                        eprintln!("This is a safety feature to prevent harmful commands.");
+                        Err("Generated command failed safety validation".to_string())
+                    }
                 }
                 Err(e) => {
                     error!("Inference failed: {}", e);
@@ -247,7 +269,7 @@ fn setup_bridge() -> Bridge {
                     eprintln!("  - Invalid or corrupted model file");
                     eprintln!("  - Incompatible model format");
                     eprintln!("  - Prompt too long or malformed");
-                    Ok(())
+                    Err(e.to_string())
                 }
             }
         }),
@@ -261,10 +283,27 @@ fn setup_bridge() -> Bridge {
             debug!("Translation input: {}", text);
 
             let translate = Translate::new();
-            translate.run(text);
-
-            debug!("Translation request completed");
-            Ok(())
+            match translate.run(text) {
+                Ok(result) => {
+                    println!("Detected language: {}", result.source_lang);
+                    if result.was_translated {
+                        println!("Original ({}): {}", result.source_lang, result.original);
+                        println!("Translated ({}): {}", result.target_lang, result.translated);
+                    } else {
+                        println!("Text is already in {}", result.target_lang);
+                        println!("Text: {}", result.original);
+                    }
+                    debug!("Translation request completed successfully");
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("Translation request failed: {}", e);
+                    eprintln!("❌ Translation Error: {}", e);
+                    eprintln!();
+                    eprintln!("Tip: Set LIBRETRANSLATE_URL for translation API");
+                    Err(e.to_string())
+                }
+            }
         }),
     );
 

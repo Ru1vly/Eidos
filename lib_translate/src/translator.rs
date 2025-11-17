@@ -3,6 +3,7 @@ use crate::error::{Result, TranslateError};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub enum TranslatorProvider {
@@ -56,9 +57,16 @@ pub struct Translator {
 
 impl Translator {
     pub fn new(provider: TranslatorProvider) -> Self {
+        // Create HTTP client with timeout to prevent hanging requests
+        let client = Client::builder()
+            .timeout(Duration::from_secs(30))  // 30 second timeout
+            .connect_timeout(Duration::from_secs(10))  // 10 second connection timeout
+            .build()
+            .expect("Failed to build HTTP client");
+
         Self {
             provider,
-            client: Client::new(),
+            client,
         }
     }
 

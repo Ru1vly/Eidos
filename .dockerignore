@@ -1,44 +1,18 @@
-# Build artifacts
-target/
-*.o
-*.so
-*.a
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Git
+# Ignore build artifacts and development files
 .git/
 .gitignore
-.gitattributes
-
-# CI/CD
 .github/
-
-# Documentation (not needed in runtime)
+target/
 docs/
 *.md
 !README.md
-
-# Test files
-datasets/
+LICENSE
+tests/
+benches/
 scripts/
-test_data/
-
-# Model files (should be mounted as volumes)
-*.onnx
-*.gguf
-tokenizer.json
-model.bin
-
-# Config files (user-specific)
-eidos.toml
-
-# Misc
+datasets/
+.vscode/
+.idea/
+*.swp
 .env
 .DS_Store
-Thumbs.db

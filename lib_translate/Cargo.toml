@@ -12,3 +12,4 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 reqwest = { workspace = true, features = ["json", "rustls-tls"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+once_cell = { workspace = true }

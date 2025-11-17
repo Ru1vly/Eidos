@@ -2,6 +2,7 @@
 name = "eidos"
 version = "0.2.0-beta"
 edition = "2021"
+rust-version = "1.70"
 
 [dependencies]
 clap = { workspace = true }
@@ -41,7 +42,7 @@ members = [
 clap = { version = "4.5.4", features = ["derive"] }
 thiserror = "1.0.61"
 anyhow = "1.0.75"
-tokio = { version = "1.37.0", features = ["full"] }
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
 reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] }
 serde = { version = "1.0.197", features = ["derive"]}
 serde_json = "1.0.115"
