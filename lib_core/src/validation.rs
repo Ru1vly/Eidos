@@ -85,7 +85,7 @@ pub fn is_safe_command(command: &str) -> bool {
 
     // Check if command starts with an allowed command
     let first_word = cmd_trimmed.split_whitespace().next().unwrap_or("");
-    if !allowed_commands.iter().any(|&c| first_word == c) {
+    if !allowed_commands.contains(&first_word) {
         return false;
     }
 

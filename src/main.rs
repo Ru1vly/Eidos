@@ -331,14 +331,14 @@ fn main() -> Result<()> {
             if let Err(e) = validate_input(text, 10000) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to chat handler");
             bridge.route(Request::Chat, text)
                 .map_err(|e| {
                     error!("Chat routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
+                    crate::error::AppError::InvalidInput(e)
                 })
         }
         Commands::Core { ref prompt } => {
@@ -346,14 +346,14 @@ fn main() -> Result<()> {
             if let Err(e) = validate_input(prompt, 1000) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to core handler");
             bridge.route(Request::Core, prompt)
                 .map_err(|e| {
                     error!("Core routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
+                    crate::error::AppError::InvalidInput(e)
                 })
         }
         Commands::Translate { ref text } => {
@@ -361,14 +361,14 @@ fn main() -> Result<()> {
             if let Err(e) = validate_input(text, 5000) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to translate handler");
             bridge.route(Request::Translate, text)
                 .map_err(|e| {
                     error!("Translate routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
+                    crate::error::AppError::InvalidInput(e)
                 })
         }
     };
