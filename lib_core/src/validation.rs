@@ -37,11 +37,11 @@
 /// - `tests/` for comprehensive security test suite
 pub fn is_safe_command(command: &str) -> bool {
     // Whitelist of safe base commands that are read-only and don't modify system state.
-    // DO NOT add write commands. See SAFETY.md for rationale.
+    // DO NOT add write commands (including touch/mkdir). See SAFETY.md for rationale.
+    // Even "safe" write operations are excluded to maintain strict read-only policy.
     let allowed_commands = [
         "ls", "pwd", "echo", "cat", "head", "tail", "grep", "find", "wc", "date", "whoami",
         "hostname", "uname", "df", "du", "free", "top", "ps", "which", "whereis", "file", "stat",
-        "touch", "mkdir",
     ];
 
     // Dangerous patterns that should never be allowed

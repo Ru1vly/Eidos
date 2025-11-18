@@ -14,3 +14,25 @@ tokenizer.json
 
 # Config file (use eidos.toml.example as template)
 eidos.toml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Sensitive files
+.env
+.env.local
+credentials.json
+*_secret*
+
+# Logs
+*.log
+logs/
+
+# Generated docs
+/target/doc/
