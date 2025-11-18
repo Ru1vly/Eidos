@@ -79,10 +79,18 @@ impl Core {
 }
 
 impl Default for Core {
+    /// Create Core with default paths
+    ///
+    /// # Panics
+    /// Panics if the default model files ("model.onnx", "tokenizer.json") cannot be loaded.
+    /// This is intentional for Default trait - use Core::new() directly for error handling.
     fn default() -> Self {
         let model_path = "model.onnx";
         let tokenizer_path = "tokenizer.json";
 
-        Core::new(model_path, tokenizer_path).expect("Failed to create Core instance")
+        Core::new(model_path, tokenizer_path).expect(
+            "FATAL: Failed to load default Core model. \
+             Ensure 'model.onnx' and 'tokenizer.json' exist in the current directory.",
+        )
     }
 }

@@ -66,7 +66,7 @@ pub struct Translator {
 }
 
 impl Translator {
-    pub fn new(provider: TranslatorProvider) -> Self {
+    pub fn new(provider: TranslatorProvider) -> Result<Self> {
         // Get timeout values from environment variables or use defaults
         let request_timeout = env::var("HTTP_REQUEST_TIMEOUT_SECS")
             .ok()
@@ -83,14 +83,14 @@ impl Translator {
             .timeout(Duration::from_secs(request_timeout))
             .connect_timeout(Duration::from_secs(connect_timeout))
             .build()
-            .expect("Failed to build HTTP client");
+            .map_err(|e| TranslateError::ApiError(format!("Failed to build HTTP client: {}", e)))?;
 
-        Self { provider, client }
+        Ok(Self { provider, client })
     }
 
     pub fn from_env() -> Result<Self> {
         let provider = TranslatorProvider::from_env()?;
-        Ok(Self::new(provider))
+        Self::new(provider)
     }
 
     pub async fn translate(

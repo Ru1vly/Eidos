@@ -112,7 +112,7 @@ pub struct ApiClient {
 }
 
 impl ApiClient {
-    pub fn new(provider: ApiProvider) -> Self {
+    pub fn new(provider: ApiProvider) -> Result<Self> {
         // Get timeout values from environment variables or use defaults
         let request_timeout = env::var("HTTP_REQUEST_TIMEOUT_SECS")
             .ok()
@@ -129,14 +129,14 @@ impl ApiClient {
             .timeout(Duration::from_secs(request_timeout))
             .connect_timeout(Duration::from_secs(connect_timeout))
             .build()
-            .expect("Failed to build HTTP client");
+            .map_err(|e| ChatError::ApiError(format!("Failed to build HTTP client: {}", e)))?;
 
-        Self { provider, client }
+        Ok(Self { provider, client })
     }
 
     pub fn from_env() -> Result<Self> {
         let provider = ApiProvider::from_env()?;
-        Ok(Self::new(provider))
+        Self::new(provider)
     }
 
     pub async fn send_message(

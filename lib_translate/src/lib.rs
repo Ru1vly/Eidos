@@ -12,8 +12,17 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all translation operations.
-static RUNTIME: Lazy<Runtime> =
-    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
+///
+/// # Panics
+/// Will panic if the tokio runtime cannot be created. This is a critical failure
+/// that indicates system resource exhaustion or misconfiguration.
+static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
+    Runtime::new().expect(
+        "FATAL: Failed to create tokio runtime. \
+         This likely indicates system resource exhaustion. \
+         Check available memory and file descriptors.",
+    )
+});
 
 pub struct Translate {
     translator: Option<Translator>,
@@ -29,17 +38,17 @@ impl Translate {
             );
             // Use mock translator as fallback
             return Self {
-                translator: Some(Translator::new(TranslatorProvider::Mock)),
+                translator: Translator::new(TranslatorProvider::Mock).ok(),
             };
         }
         Self { translator }
     }
 
     /// Create a Translate instance with a specific provider
-    pub fn with_provider(provider: TranslatorProvider) -> Self {
-        Self {
-            translator: Some(Translator::new(provider)),
-        }
+    pub fn with_provider(provider: TranslatorProvider) -> Result<Self> {
+        Ok(Self {
+            translator: Some(Translator::new(provider)?),
+        })
     }
 
     /// Detect language and translate if needed

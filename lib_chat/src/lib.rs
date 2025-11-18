@@ -12,8 +12,17 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all chat operations.
-static RUNTIME: Lazy<Runtime> =
-    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
+///
+/// # Panics
+/// Will panic if the tokio runtime cannot be created. This is a critical failure
+/// that indicates system resource exhaustion or misconfiguration.
+static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
+    Runtime::new().expect(
+        "FATAL: Failed to create tokio runtime. \
+         This likely indicates system resource exhaustion. \
+         Check available memory and file descriptors.",
+    )
+});
 
 pub struct Chat {
     client: Option<ApiClient>,
@@ -34,11 +43,11 @@ impl Chat {
     }
 
     /// Create a Chat instance with a specific provider
-    pub fn with_provider(provider: ApiProvider) -> Self {
-        Self {
-            client: Some(ApiClient::new(provider)),
+    pub fn with_provider(provider: ApiProvider) -> Result<Self> {
+        Ok(Self {
+            client: Some(ApiClient::new(provider)?),
             history: ConversationHistory::default(),
-        }
+        })
     }
 
     /// Send a message and get a response (async)

@@ -31,7 +31,6 @@ pub struct CommandResult {
 
 impl CommandResult {
     pub fn new(prompt: impl Into<String>, command: impl Into<String>, is_safe: bool) -> Self {
-        let is_safe = is_safe;
         Self {
             prompt: prompt.into(),
             command: command.into(),
