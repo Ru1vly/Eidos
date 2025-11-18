@@ -49,7 +49,9 @@ impl Chat {
             .ok_or_else(|| error::ChatError::NoProviderError)?;
 
         // Add user message to history
-        self.history.add_user_message(message);
+        self.history
+            .add_user_message(message)
+            .map_err(|e| error::ChatError::InvalidInput(e))?;
 
         // Send to API with full conversation history
         let response = client
@@ -57,7 +59,9 @@ impl Chat {
             .await?;
 
         // Add assistant response to history
-        self.history.add_assistant_message(&response);
+        self.history
+            .add_assistant_message(&response)
+            .map_err(|e| error::ChatError::InvalidInput(e))?;
 
         Ok(response)
     }
@@ -73,8 +77,10 @@ impl Chat {
     }
 
     /// Add a system message to guide the conversation
-    pub fn set_system_prompt(&mut self, prompt: &str) {
-        self.history.add_system_message(prompt);
+    pub fn set_system_prompt(&mut self, prompt: &str) -> Result<()> {
+        self.history
+            .add_system_message(prompt)
+            .map_err(|e| error::ChatError::InvalidInput(e))
     }
 
     /// Clear conversation history

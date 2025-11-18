@@ -46,6 +46,36 @@ impl Core {
     pub fn is_safe_command(&self, command: &str) -> bool {
         is_safe_command(command)
     }
+
+    /// Generates an explanation for what a command does
+    ///
+    /// This helps users understand generated commands before executing them.
+    /// The explanation describes the command's purpose, flags used, and potential side effects.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let explanation = core.explain_command("ls -la")?;
+    /// // Returns: "Lists all files in long format, including hidden files"
+    /// ```
+    pub fn explain_command(&self, command: &str) -> TractResult<String> {
+        let prompt = format!("Explain what this command does: {}", command);
+
+        let encoding = self.tokenizer.encode(prompt.as_str(), true).map_err(|e| anyhow!(e))?;
+        let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
+        let input_tensor = arr1(&input_ids).into_dyn().into_tensor();
+
+        let result = self.model.run(tvec!(input_tensor.into()))?;
+
+        let output_tensor = result[0].to_array_view::<i64>()?;
+        let output_ids: Vec<u32> = output_tensor.iter().map(|&id| id as u32).collect();
+
+        let explanation = self
+            .tokenizer
+            .decode(&output_ids, true)
+            .map_err(|e| anyhow!(e))?;
+
+        Ok(explanation)
+    }
 }
 
 impl Default for Core {

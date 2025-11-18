@@ -69,20 +69,98 @@ impl Config {
         })
     }
 
-    /// Validate that the configured paths exist
+    /// Validate that the configured paths exist and are safe to use
     pub fn validate(&self) -> Result<(), String> {
-        if !self.model_path.exists() {
+        // Validate model path
+        Self::validate_file_path(&self.model_path, "Model", 2 * 1024 * 1024 * 1024)?; // 2GB max
+
+        // Validate tokenizer path
+        Self::validate_file_path(&self.tokenizer_path, "Tokenizer", 100 * 1024 * 1024)?; // 100MB max
+
+        Ok(())
+    }
+
+    /// Validate a file path for security and safety
+    fn validate_file_path(path: &PathBuf, file_type: &str, max_size: u64) -> Result<(), String> {
+        // Check if file exists
+        if !path.exists() {
+            return Err(format!("{} file not found: {}", file_type, path.display()));
+        }
+
+        // Canonicalize path to resolve symlinks and check for path traversal
+        let canonical_path = path.canonicalize().map_err(|e| {
+            format!(
+                "Failed to resolve {} path {}: {}",
+                file_type,
+                path.display(),
+                e
+            )
+        })?;
+
+        // Check if path contains suspicious patterns (after canonicalization)
+        let path_str = canonical_path.to_string_lossy();
+        if path_str.contains("..") {
             return Err(format!(
-                "Model file not found: {}",
-                self.model_path.display()
+                "{} path contains suspicious patterns: {}",
+                file_type,
+                path.display()
             ));
         }
 
-        if !self.tokenizer_path.exists() {
+        // Get file metadata
+        let metadata = fs::metadata(&canonical_path).map_err(|e| {
+            format!(
+                "Failed to read {} file metadata: {}",
+                file_type, e
+            )
+        })?;
+
+        // Check if it's a regular file (not directory or other special file)
+        if !metadata.is_file() {
             return Err(format!(
-                "Tokenizer file not found: {}",
-                self.tokenizer_path.display()
+                "{} path is not a regular file: {}",
+                file_type,
+                path.display()
             ));
+        }
+
+        // Check file size is reasonable
+        let file_size = metadata.len();
+        if file_size > max_size {
+            return Err(format!(
+                "{} file too large: {} bytes (max {} bytes)",
+                file_type, file_size, max_size
+            ));
+        }
+
+        if file_size == 0 {
+            return Err(format!("{} file is empty: {}", file_type, path.display()));
+        }
+
+        // Check file permissions (must be readable)
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let permissions = metadata.permissions();
+            let mode = permissions.mode();
+
+            // Check if file is readable by user (owner)
+            if mode & 0o400 == 0 {
+                return Err(format!(
+                    "{} file is not readable: {}",
+                    file_type,
+                    path.display()
+                ));
+            }
+
+            // Warn if file is world-readable with write permissions
+            if mode & 0o002 != 0 {
+                eprintln!(
+                    "⚠️  Warning: {} file is world-writable: {}",
+                    file_type,
+                    path.display()
+                );
+            }
         }
 
         Ok(())

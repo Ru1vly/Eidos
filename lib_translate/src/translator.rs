@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::time::Duration;
 
+// Default timeouts (can be overridden via environment variables)
+const DEFAULT_REQUEST_TIMEOUT_SECS: u64 = 30;
+const DEFAULT_CONNECT_TIMEOUT_SECS: u64 = 10;
+
 #[derive(Debug, Clone)]
 pub enum TranslatorProvider {
     LibreTranslate {
@@ -17,17 +21,20 @@ pub enum TranslatorProvider {
 impl TranslatorProvider {
     /// Load translator from environment variables
     pub fn from_env() -> Result<Self> {
-        // Check for LibreTranslate configuration
-        if let Ok(url) = env::var("LIBRETRANSLATE_URL") {
-            let api_key = env::var("LIBRETRANSLATE_API_KEY").ok();
-            return Ok(TranslatorProvider::LibreTranslate { url, api_key });
-        }
+        // Require explicit LibreTranslate configuration for security
+        let url = env::var("LIBRETRANSLATE_URL").map_err(|_| {
+            TranslateError::ConfigError(
+                "Translation service not configured. Set LIBRETRANSLATE_URL environment variable.\n\
+                 Options:\n\
+                 1. Self-hosted: export LIBRETRANSLATE_URL=http://localhost:5000\n\
+                 2. Public API: export LIBRETRANSLATE_URL=https://libretranslate.com\n\
+                    (Note: Public API has rate limits and may require an API key)\n\
+                 3. With API key: export LIBRETRANSLATE_API_KEY=your_api_key".to_string(),
+            )
+        })?;
 
-        // Default to public LibreTranslate instance (with limitations)
-        Ok(TranslatorProvider::LibreTranslate {
-            url: "https://libretranslate.com".to_string(),
-            api_key: None,
-        })
+        let api_key = env::var("LIBRETRANSLATE_API_KEY").ok();
+        Ok(TranslatorProvider::LibreTranslate { url, api_key })
     }
 }
 
@@ -60,10 +67,21 @@ pub struct Translator {
 
 impl Translator {
     pub fn new(provider: TranslatorProvider) -> Self {
-        // Create HTTP client with timeout to prevent hanging requests
+        // Get timeout values from environment variables or use defaults
+        let request_timeout = env::var("HTTP_REQUEST_TIMEOUT_SECS")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(DEFAULT_REQUEST_TIMEOUT_SECS);
+
+        let connect_timeout = env::var("HTTP_CONNECT_TIMEOUT_SECS")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(DEFAULT_CONNECT_TIMEOUT_SECS);
+
+        // Create HTTP client with configurable timeouts to prevent hanging requests
         let client = Client::builder()
-            .timeout(Duration::from_secs(30)) // 30 second timeout
-            .connect_timeout(Duration::from_secs(10)) // 10 second connection timeout
+            .timeout(Duration::from_secs(request_timeout))
+            .connect_timeout(Duration::from_secs(connect_timeout))
             .build()
             .expect("Failed to build HTTP client");
 
