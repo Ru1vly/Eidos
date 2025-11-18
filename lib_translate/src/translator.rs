@@ -188,7 +188,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mock_translator() {
-        let translator = Translator::new(TranslatorProvider::Mock);
+        let translator = Translator::new(TranslatorProvider::Mock).unwrap();
         let result = translator.translate("Hello", "en", "es").await.unwrap();
         assert!(result.contains("Hello"));
         assert!(result.contains("en"));
@@ -197,7 +197,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_translate_to_english_same_language() {
-        let translator = Translator::new(TranslatorProvider::Mock);
+        let translator = Translator::new(TranslatorProvider::Mock).unwrap();
         let result = translator
             .translate_to_english("Hello", "en")
             .await

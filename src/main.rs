@@ -1,7 +1,6 @@
 mod config;
 mod constants;
 mod error;
-mod output;
 
 use crate::config::Config;
 use crate::constants::*;
@@ -104,9 +103,6 @@ struct Cli {
 
     #[clap(short, long, global = true, help = "Enable debug logging")]
     debug: bool,
-
-    #[clap(short = 'o', long, global = true, value_name = "FORMAT", help = "Output format: text (default) or json")]
-    output_format: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]

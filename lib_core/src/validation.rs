@@ -116,8 +116,8 @@ pub fn is_safe_command(command: &str) -> bool {
         return false;
     }
 
-    // Check if command starts with an allowed command
-    let first_word = cmd_trimmed.split_whitespace().next().unwrap_or("");
+    // Check if command starts with an allowed command (case-insensitive)
+    let first_word = cmd_lower.split_whitespace().next().unwrap_or("");
     if !allowed_commands.contains(&first_word) {
         return false;
     }
