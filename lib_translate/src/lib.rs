@@ -5,6 +5,15 @@ pub mod translator;
 use crate::detector::{detect_language_code, is_english};
 use crate::error::Result;
 use crate::translator::{Translator, TranslatorProvider};
+use once_cell::sync::Lazy;
+use tokio::runtime::Runtime;
+
+/// Global shared tokio runtime for synchronous translation operations
+///
+/// Creating a new Runtime on every request is expensive (~10-50ms overhead).
+/// This static runtime is created once and reused for all translation operations.
+static RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
 
 pub struct Translate {
     translator: Option<Translator>,
@@ -15,7 +24,9 @@ impl Translate {
     pub fn new() -> Self {
         let translator = Translator::from_env().ok();
         if translator.is_none() {
-            eprintln!("Warning: Using mock translator. Set LIBRETRANSLATE_URL for real translation");
+            eprintln!(
+                "Warning: Using mock translator. Set LIBRETRANSLATE_URL for real translation"
+            );
             // Use mock translator as fallback
             return Self {
                 translator: Some(Translator::new(TranslatorProvider::Mock)),
@@ -32,7 +43,11 @@ impl Translate {
     }
 
     /// Detect language and translate if needed
-    pub async fn detect_and_translate_async(&self, text: &str, target_lang: &str) -> Result<TranslationResult> {
+    pub async fn detect_and_translate_async(
+        &self,
+        text: &str,
+        target_lang: &str,
+    ) -> Result<TranslationResult> {
         // Detect source language
         let source_lang = detect_language_code(text)?;
 
@@ -53,7 +68,9 @@ impl Translate {
             .as_ref()
             .ok_or_else(|| error::TranslateError::NoTranslatorError)?;
 
-        let translated = translator.translate(text, &source_lang, target_lang).await?;
+        let translated = translator
+            .translate(text, &source_lang, target_lang)
+            .await?;
 
         Ok(TranslationResult {
             original: text.to_string(),
@@ -65,40 +82,23 @@ impl Translate {
     }
 
     /// Synchronous wrapper for the main run method
-    pub fn run(&self, text: &str) {
-        // Detect language
-        match detect_language_code(text) {
-            Ok(lang_code) => {
-                println!("Detected language: {}", lang_code);
+    /// Returns a TranslationResult if translation was performed, or the original text if it was already in English
+    pub fn run(&self, text: &str) -> Result<TranslationResult> {
+        let lang_code = detect_language_code(text)?;
 
-                if is_english(text) {
-                    println!("Text is already in English");
-                    println!("Original: {}", text);
-                } else {
-                    println!("Translating to English...");
-
-                    // Create runtime for async translation
-                    let runtime = tokio::runtime::Runtime::new().unwrap();
-
-                    match runtime.block_on(self.detect_and_translate_async(text, "en")) {
-                        Ok(result) => {
-                            if result.was_translated {
-                                println!("Original ({}): {}", result.source_lang, result.original);
-                                println!("Translated ({}): {}", result.target_lang, result.translated);
-                            } else {
-                                println!("No translation needed");
-                            }
-                        }
-                        Err(e) => {
-                            eprintln!("Translation Error: {}", e);
-                            eprintln!("Tip: Set LIBRETRANSLATE_URL for translation API");
-                        }
-                    }
-                }
-            }
-            Err(e) => {
-                eprintln!("Language detection failed: {}", e);
-            }
+        if is_english(text) {
+            // Text is already in English, no translation needed
+            Ok(TranslationResult {
+                original: text.to_string(),
+                translated: text.to_string(),
+                source_lang: lang_code,
+                target_lang: "en".to_string(),
+                was_translated: false,
+            })
+        } else {
+            // Use shared runtime for async translation (avoids ~10-50ms overhead)
+            let result = RUNTIME.block_on(self.detect_and_translate_async(text, "en"))?;
+            Ok(result)
         }
     }
 

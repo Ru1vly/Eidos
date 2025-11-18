@@ -62,10 +62,7 @@ mod tests {
     fn test_register_handler() {
         let mut bridge = Bridge::new();
 
-        bridge.register(
-            Request::Chat,
-            Box::new(|_text: &str| Ok(())),
-        );
+        bridge.register(Request::Chat, Box::new(|_text: &str| Ok(())));
 
         assert_eq!(bridge.router.len(), 1);
     }
@@ -118,20 +115,11 @@ mod tests {
     fn test_multiple_handlers() {
         let mut bridge = Bridge::new();
 
-        bridge.register(
-            Request::Chat,
-            Box::new(|_: &str| Ok(())),
-        );
+        bridge.register(Request::Chat, Box::new(|_: &str| Ok(())));
 
-        bridge.register(
-            Request::Core,
-            Box::new(|_: &str| Ok(())),
-        );
+        bridge.register(Request::Core, Box::new(|_: &str| Ok(())));
 
-        bridge.register(
-            Request::Translate,
-            Box::new(|_: &str| Ok(())),
-        );
+        bridge.register(Request::Translate, Box::new(|_: &str| Ok(())));
 
         assert_eq!(bridge.router.len(), 3);
 
@@ -181,10 +169,7 @@ mod tests {
         );
 
         // Overwrite with second handler
-        bridge.register(
-            Request::Chat,
-            Box::new(|_: &str| Ok(())),
-        );
+        bridge.register(Request::Chat, Box::new(|_: &str| Ok(())));
 
         // Should use the second handler
         let result = bridge.route(Request::Chat, "test");

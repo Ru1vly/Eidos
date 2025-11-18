@@ -12,9 +12,8 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all chat operations.
-static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
-    Runtime::new().expect("Failed to create tokio runtime")
-});
+static RUNTIME: Lazy<Runtime> =
+    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
 
 pub struct Chat {
     client: Option<ApiClient>,
@@ -68,19 +67,9 @@ impl Chat {
     ///
     /// Uses a shared global runtime to avoid the overhead of creating
     /// a new runtime on every chat request (~10-50ms saved per call).
-    pub fn run(&mut self, text: &str) {
-        match RUNTIME.block_on(self.send_async(text)) {
-            Ok(response) => {
-                println!("Assistant: {}", response);
-            }
-            Err(e) => {
-                eprintln!("Chat Error: {}", e);
-                eprintln!("Tip: Configure an API provider:");
-                eprintln!("  - OpenAI: export OPENAI_API_KEY=your-key");
-                eprintln!("  - Ollama: export OLLAMA_HOST=http://localhost:11434");
-                eprintln!("  - Custom: export LLM_API_URL=http://your-api");
-            }
-        }
+    pub fn run(&mut self, text: &str) -> Result<String> {
+        let response = RUNTIME.block_on(self.send_async(text))?;
+        Ok(response)
     }
 
     /// Add a system message to guide the conversation

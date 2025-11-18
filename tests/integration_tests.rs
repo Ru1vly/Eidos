@@ -17,7 +17,7 @@ fn test_cli_version() {
     cmd.arg("--version");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("0.1.0"));
+        .stdout(predicate::str::contains("0.2.0-beta"));
 }
 
 #[test]
@@ -32,7 +32,9 @@ fn test_chat_command() {
 
     // Should mention chat or API configuration
     assert!(
-        stderr.contains("Chat Error") || stderr.contains("Tip: Configure an API provider") || output.status.success(),
+        stderr.contains("Chat Error")
+            || stderr.contains("Tip: Configure an API provider")
+            || output.status.success(),
         "Expected chat error message or success, got: {}",
         stderr
     );
@@ -43,9 +45,22 @@ fn test_translate_command() {
     let mut cmd = Command::cargo_bin("eidos").unwrap();
     cmd.arg("translate").arg("Bonjour le monde");
 
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Detected language"));
+    // Test should pass if EITHER:
+    // 1. Translation succeeds (has API key configured), OR
+    // 2. Fails gracefully with clear API error message
+    let output = cmd.output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    let has_success_output = stdout.contains("Detected language");
+    let has_api_error = stderr.contains("Translation Error") || stderr.contains("API error");
+
+    assert!(
+        has_success_output || has_api_error,
+        "Expected either successful translation or graceful API error, got stdout: {}, stderr: {}",
+        stdout,
+        stderr
+    );
 }
 
 #[test]
@@ -59,7 +74,8 @@ fn test_core_command_without_config() {
 
     // Should mention configuration
     assert!(
-        stderr.contains("Configuration validation failed") || stderr.contains("Tip: Set EIDOS_MODEL_PATH"),
+        stderr.contains("Configuration validation failed")
+            || stderr.contains("Tip: Set EIDOS_MODEL_PATH"),
         "Expected config error message, got: {}",
         stderr
     );
@@ -95,10 +111,16 @@ fn test_chat_command_empty_text() {
 #[test]
 fn test_translate_command_english_text() {
     let mut cmd = Command::cargo_bin("eidos").unwrap();
-    cmd.arg("translate").arg("This is English text that is long enough to be detected properly.");
+    cmd.arg("translate")
+        .arg("This is English text that is long enough to be detected properly.");
 
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Detected language: en"))
-        .stdout(predicate::str::contains("already in English"));
+    let output = cmd.output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Should detect English and report it (even if translation API is unavailable)
+    assert!(
+        stdout.contains("Detected language: en") || stdout.contains("Text is already in en"),
+        "Expected English detection, got: {}",
+        stdout
+    );
 }

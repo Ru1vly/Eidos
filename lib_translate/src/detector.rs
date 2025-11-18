@@ -42,7 +42,6 @@ pub fn detect_with_confidence(text: &str) -> Vec<(Language, f64)> {
     detector
         .compute_language_confidence_values(text)
         .into_iter()
-        .map(|(lang, conf)| (lang, conf))
         .collect()
 }
 
@@ -74,7 +73,8 @@ mod tests {
 
     #[test]
     fn test_detect_language_code() {
-        let text = "Hello world, this is a test of the language detection system with English text.";
+        let text =
+            "Hello world, this is a test of the language detection system with English text.";
         let code = detect_language_code(text).unwrap();
         assert_eq!(code, "en");
 
@@ -85,7 +85,11 @@ mod tests {
 
     #[test]
     fn test_is_english() {
-        assert!(is_english("This is English text that is long enough to be detected properly with good accuracy."));
-        assert!(!is_english("Ceci est du texte français qui est assez long pour être détecté correctement."));
+        assert!(is_english(
+            "This is English text that is long enough to be detected properly with good accuracy."
+        ));
+        assert!(!is_english(
+            "Ceci est du texte français qui est assez long pour être détecté correctement."
+        ));
     }
 }

@@ -1,7 +1,10 @@
 mod config;
+mod constants;
 mod error;
+mod output;
 
 use crate::config::Config;
+use crate::constants::*;
 use crate::error::Result;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
@@ -40,29 +43,30 @@ lazy_static! {
 /// # Thread Safety
 /// Uses RwLock to allow multiple concurrent reads while ensuring
 /// exclusive access during model loading.
-fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Result<Arc<Core>, String> {
+fn get_or_load_model(
+    model_path: &str,
+    tokenizer_path: &str,
+) -> std::result::Result<Arc<Core>, String> {
     // Fast path: Check if model is already cached with read lock
     {
         let cache = MODEL_CACHE.read();
-        if cache.core.is_some()
-            && cache.model_path == model_path
-            && cache.tokenizer_path == tokenizer_path
-        {
-            debug!("Returning cached model instance (fast path)");
-            return Ok(cache.core.as_ref().unwrap().clone());
+        if let Some(ref core) = cache.core {
+            if cache.model_path == model_path && cache.tokenizer_path == tokenizer_path {
+                debug!("Returning cached model instance (fast path)");
+                return Ok(Arc::clone(core));
+            }
         }
     }
 
     // Slow path: Load model with write lock
     let mut cache = MODEL_CACHE.write();
 
-    // Double-check in case another thread loaded it while we waited
-    if cache.core.is_some()
-        && cache.model_path == model_path
-        && cache.tokenizer_path == tokenizer_path
-    {
-        debug!("Model loaded by another thread (double-check)");
-        return Ok(cache.core.as_ref().unwrap().clone());
+    // Double-check in case another thread loaded it while we waited for write lock
+    if let Some(ref core) = cache.core {
+        if cache.model_path == model_path && cache.tokenizer_path == tokenizer_path {
+            debug!("Model loaded by another thread (double-check)");
+            return Ok(Arc::clone(core));
+        }
     }
 
     info!("Loading model from disk (first request or config changed)");
@@ -78,7 +82,7 @@ fn get_or_load_model(model_path: &str, tokenizer_path: &str) -> std::result::Res
     info!("Model loaded successfully in {:.2}s", elapsed.as_secs_f64());
 
     let core_arc = Arc::new(core);
-    cache.core = Some(core_arc.clone());
+    cache.core = Some(Arc::clone(&core_arc));
     cache.model_path = model_path.to_string();
     cache.tokenizer_path = tokenizer_path.to_string();
 
@@ -100,6 +104,9 @@ struct Cli {
 
     #[clap(short, long, global = true, help = "Enable debug logging")]
     debug: bool,
+
+    #[clap(short = 'o', long, global = true, value_name = "FORMAT", help = "Output format: text (default) or json")]
+    output_format: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -109,10 +116,16 @@ enum Commands {
         #[clap(help = "The input text for the chat")]
         text: String,
     },
-    #[clap(about = "Core functionality")]
+    #[clap(about = "Generate shell command from natural language prompt")]
     Core {
-        #[clap(help = "The prompt for the core model")]
+        #[clap(help = "The natural language prompt describing desired command")]
         prompt: String,
+
+        #[clap(short = 'n', long, default_value = "1", help = "Number of alternative commands to generate")]
+        alternatives: usize,
+
+        #[clap(short = 'e', long, help = "Include explanation of what the command does")]
+        explain: bool,
     },
     #[clap(about = "Translate text")]
     Translate {
@@ -133,13 +146,15 @@ fn validate_input(text: &str, max_length: usize) -> std::result::Result<(), Stri
     if char_count > max_length {
         return Err(format!(
             "Input too long ({} characters, max {})",
-            char_count,
-            max_length
+            char_count, max_length
         ));
     }
 
     // Check for control characters (except newlines/tabs)
-    if text.chars().any(|c| c.is_control() && c != '\n' && c != '\t') {
+    if text
+        .chars()
+        .any(|c| c.is_control() && c != '\n' && c != '\t')
+    {
         warn!("Input contains control characters, sanitizing");
     }
 
@@ -177,10 +192,23 @@ fn setup_bridge() -> Bridge {
             debug!("Chat input: {}", text);
 
             let mut chat = Chat::new();
-            chat.run(text);
-
-            debug!("Chat request completed");
-            Ok(())
+            match chat.run(text) {
+                Ok(response) => {
+                    println!("Assistant: {}", response);
+                    debug!("Chat request completed successfully");
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("Chat request failed: {}", e);
+                    eprintln!("❌ Chat Error: {}", e);
+                    eprintln!();
+                    eprintln!("Tip: Configure an API provider:");
+                    eprintln!("  - OpenAI: export OPENAI_API_KEY=your-key");
+                    eprintln!("  - Ollama: export OLLAMA_HOST=http://localhost:11434");
+                    eprintln!("  - Custom: export LLM_API_URL=http://your-api");
+                    Err(e.to_string())
+                }
+            }
         }),
     );
 
@@ -193,14 +221,13 @@ fn setup_bridge() -> Bridge {
 
             // Load configuration
             debug!("Loading configuration");
-            let config = Config::load()
-                .map_err(|e| {
-                    error!("Configuration loading failed: {}", e);
-                    format!("Config error: {}", e)
-                })?;
+            let config = Config::load().map_err(|e| {
+                error!("Configuration loading failed: {}", e);
+                format!("Config error: {}", e)
+            })?;
 
             // Validate configuration
-            if let Err(e) = config.validate() {
+            config.validate().map_err(|e| {
                 error!("Configuration validation failed: {}", e);
                 eprintln!("❌ Configuration Error: {}", e);
                 eprintln!();
@@ -214,30 +241,46 @@ fn setup_bridge() -> Bridge {
                 eprintln!("     tokenizer_path = \"/path/to/tokenizer.json\"");
                 eprintln!();
                 eprintln!("  3. See docs/MODEL_GUIDE.md for training your own model");
-                return Ok(());
-            }
+                e.to_string()
+            })?;
 
             debug!("Configuration valid, loading model");
 
             // Get Core instance from cache (or load if not cached)
-            let model_path_str = config.model_path.to_str()
+            let model_path_str = config
+                .model_path
+                .to_str()
                 .ok_or_else(|| "Invalid model path encoding".to_string())?;
-            let tokenizer_path_str = config.tokenizer_path.to_str()
+            let tokenizer_path_str = config
+                .tokenizer_path
+                .to_str()
                 .ok_or_else(|| "Invalid tokenizer path encoding".to_string())?;
 
-            let core = get_or_load_model(model_path_str, tokenizer_path_str)
-                .map_err(|e| {
-                    error!("Model loading failed: {}", e);
-                    e
-                })?;
+            let core = get_or_load_model(model_path_str, tokenizer_path_str).map_err(|e| {
+                error!("Model loading failed: {}", e);
+                e
+            })?;
 
-            // Run inference
-            match core.run(prompt) {
-                Ok(output) => {
-                    info!("Command generated successfully");
-                    debug!("Generated command: {}", output);
-                    println!("{}", output);
-                    Ok(())
+            // Generate command (validation happens in Core)
+            match core.generate_command(prompt) {
+                Ok(command) => {
+                    // Validate that generated command is safe
+                    if core.is_safe_command(&command) {
+                        info!("Command generated and validated successfully");
+                        debug!("Generated command: {}", command);
+                        println!("{}", command);
+                        Ok(())
+                    } else {
+                        error!("Generated command failed safety validation");
+                        eprintln!("❌ Safety Error: Generated command is not safe to execute");
+                        eprintln!("Generated: {}", command);
+                        eprintln!();
+                        eprintln!(
+                            "The model generated a command that contains dangerous patterns."
+                        );
+                        eprintln!("This is a safety feature to prevent harmful commands.");
+                        Err("Generated command failed safety validation".to_string())
+                    }
                 }
                 Err(e) => {
                     error!("Inference failed: {}", e);
@@ -247,7 +290,7 @@ fn setup_bridge() -> Bridge {
                     eprintln!("  - Invalid or corrupted model file");
                     eprintln!("  - Incompatible model format");
                     eprintln!("  - Prompt too long or malformed");
-                    Ok(())
+                    Err(e.to_string())
                 }
             }
         }),
@@ -261,10 +304,27 @@ fn setup_bridge() -> Bridge {
             debug!("Translation input: {}", text);
 
             let translate = Translate::new();
-            translate.run(text);
-
-            debug!("Translation request completed");
-            Ok(())
+            match translate.run(text) {
+                Ok(result) => {
+                    println!("Detected language: {}", result.source_lang);
+                    if result.was_translated {
+                        println!("Original ({}): {}", result.source_lang, result.original);
+                        println!("Translated ({}): {}", result.target_lang, result.translated);
+                    } else {
+                        println!("Text is already in {}", result.target_lang);
+                        println!("Text: {}", result.original);
+                    }
+                    debug!("Translation request completed successfully");
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("Translation request failed: {}", e);
+                    eprintln!("❌ Translation Error: {}", e);
+                    eprintln!();
+                    eprintln!("Tip: Set LIBRETRANSLATE_URL for translation API");
+                    Err(e.to_string())
+                }
+            }
         }),
     );
 
@@ -289,48 +349,45 @@ fn main() -> Result<()> {
     let result = match cli.command {
         Commands::Chat { ref text } => {
             // Validate input (max 10000 chars for chat)
-            if let Err(e) = validate_input(text, 10000) {
+            if let Err(e) = validate_input(text, MAX_CHAT_INPUT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to chat handler");
-            bridge.route(Request::Chat, text)
-                .map_err(|e| {
-                    error!("Chat routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
-                })
+            bridge.route(Request::Chat, text).map_err(|e| {
+                error!("Chat routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
-        Commands::Core { ref prompt } => {
+        Commands::Core { ref prompt, alternatives: _, explain: _ } => {
             // Validate input (max 1000 chars for prompts)
-            if let Err(e) = validate_input(prompt, 1000) {
+            if let Err(e) = validate_input(prompt, MAX_CORE_PROMPT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to core handler");
-            bridge.route(Request::Core, prompt)
-                .map_err(|e| {
-                    error!("Core routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
-                })
+            bridge.route(Request::Core, prompt).map_err(|e| {
+                error!("Core routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
         Commands::Translate { ref text } => {
             // Validate input (max 5000 chars for translation)
-            if let Err(e) = validate_input(text, 5000) {
+            if let Err(e) = validate_input(text, MAX_TRANSLATE_INPUT_LENGTH) {
                 error!("Input validation failed: {}", e);
                 eprintln!("❌ Invalid input: {}", e);
-                return Ok(());
+                return Err(crate::error::AppError::InvalidInput(e));
             }
 
             debug!("Routing to translate handler");
-            bridge.route(Request::Translate, text)
-                .map_err(|e| {
-                    error!("Translate routing failed: {}", e);
-                    crate::error::AppError::InvalidInputError(e)
-                })
+            bridge.route(Request::Translate, text).map_err(|e| {
+                error!("Translate routing failed: {}", e);
+                crate::error::AppError::InvalidInput(e)
+            })
         }
     };
 

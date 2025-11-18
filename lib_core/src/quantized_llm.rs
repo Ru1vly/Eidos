@@ -1,10 +1,10 @@
 use anyhow::{Error as E, Result};
-use candle_core::{Device, Tensor};
 use candle_core::quantized::gguf_file;
+use candle_core::{Device, Tensor};
 use candle_transformers::generation::LogitsProcessor;
 use candle_transformers::models::quantized_llama::ModelWeights;
-use tokenizers::Tokenizer;
 use std::fs::File;
+use tokenizers::Tokenizer;
 
 #[derive(Debug)]
 pub enum QuantizedLlmError {
@@ -63,9 +63,7 @@ impl QuantizedLlm {
             let input = Tensor::new(context, &self.device)?.unsqueeze(0)?;
 
             // Quantized models manage their own internal state, no external cache needed
-            let logits = self
-                .model
-                .forward(&input, context_size - 1)?;
+            let logits = self.model.forward(&input, context_size - 1)?;
             let logits = logits.squeeze(0)?;
             let next_token = self.logits_processor.sample(&logits)?;
 

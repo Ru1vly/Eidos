@@ -4,12 +4,23 @@ use crate::history::Message;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub enum ApiProvider {
-    OpenAI { api_key: String, model: String },
-    Ollama { base_url: String, model: String },
-    Custom { base_url: String, api_key: Option<String>, model: String },
+    OpenAI {
+        api_key: String,
+        model: String,
+    },
+    Ollama {
+        base_url: String,
+        model: String,
+    },
+    Custom {
+        base_url: String,
+        api_key: Option<String>,
+        model: String,
+    },
 }
 
 impl ApiProvider {
@@ -98,10 +109,14 @@ pub struct ApiClient {
 
 impl ApiClient {
     pub fn new(provider: ApiProvider) -> Self {
-        Self {
-            provider,
-            client: Client::new(),
-        }
+        // Create HTTP client with timeout to prevent hanging requests
+        let client = Client::builder()
+            .timeout(Duration::from_secs(30)) // 30 second timeout
+            .connect_timeout(Duration::from_secs(10)) // 10 second connection timeout
+            .build()
+            .expect("Failed to build HTTP client");
+
+        Self { provider, client }
     }
 
     pub fn from_env() -> Result<Self> {
@@ -128,8 +143,15 @@ impl ApiClient {
                 api_key,
                 model,
             } => {
-                self.send_custom_request(base_url, api_key.as_deref(), model, messages, temperature, max_tokens)
-                    .await
+                self.send_custom_request(
+                    base_url,
+                    api_key.as_deref(),
+                    model,
+                    messages,
+                    temperature,
+                    max_tokens,
+                )
+                .await
             }
         }
     }
