@@ -1,7 +1,6 @@
 mod config;
 mod constants;
 mod error;
-mod output;
 
 use crate::config::Config;
 use crate::constants::*;
@@ -104,9 +103,6 @@ struct Cli {
 
     #[clap(short, long, global = true, help = "Enable debug logging")]
     debug: bool,
-
-    #[clap(short = 'o', long, global = true, value_name = "FORMAT", help = "Output format: text (default) or json")]
-    output_format: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -132,6 +128,23 @@ enum Commands {
         #[clap(help = "The text to translate")]
         text: String,
     },
+}
+
+/// Sanitize sensitive text for logging by truncating and masking
+///
+/// This prevents sensitive information from being exposed in debug logs.
+/// Only logs first 50 characters and masks the rest.
+fn sanitize_for_logging(text: &str, max_chars: usize) -> String {
+    let char_count = text.chars().count();
+    if char_count <= max_chars {
+        format!("{}... ({} chars)", text.chars().take(max_chars).collect::<String>(), char_count)
+    } else {
+        format!(
+            "{}... [TRUNCATED] ({} chars total)",
+            text.chars().take(max_chars).collect::<String>(),
+            char_count
+        )
+    }
 }
 
 /// Validate input text for safety and sanity
@@ -189,7 +202,7 @@ fn setup_bridge() -> Bridge {
         Request::Chat,
         Box::new(|text: &str| {
             info!("Processing chat request");
-            debug!("Chat input: {}", text);
+            debug!("Chat input: {}", sanitize_for_logging(text, 50));
 
             let mut chat = Chat::new();
             match chat.run(text) {
@@ -217,7 +230,7 @@ fn setup_bridge() -> Bridge {
         Request::Core,
         Box::new(|prompt: &str| {
             info!("Processing core command generation request");
-            debug!("Prompt: {}", prompt);
+            debug!("Prompt: {}", sanitize_for_logging(prompt, 50));
 
             // Load configuration
             debug!("Loading configuration");
@@ -301,7 +314,7 @@ fn setup_bridge() -> Bridge {
         Request::Translate,
         Box::new(|text: &str| {
             info!("Processing translation request");
-            debug!("Translation input: {}", text);
+            debug!("Translation input: {}", sanitize_for_logging(text, 50));
 
             let translate = Translate::new();
             match translate.run(text) {
@@ -361,7 +374,11 @@ fn main() -> Result<()> {
                 crate::error::AppError::InvalidInput(e)
             })
         }
-        Commands::Core { ref prompt, alternatives: _, explain: _ } => {
+        Commands::Core {
+            ref prompt,
+            alternatives,
+            explain,
+        } => {
             // Validate input (max 1000 chars for prompts)
             if let Err(e) = validate_input(prompt, MAX_CORE_PROMPT_LENGTH) {
                 error!("Input validation failed: {}", e);
@@ -369,11 +386,137 @@ fn main() -> Result<()> {
                 return Err(crate::error::AppError::InvalidInput(e));
             }
 
-            debug!("Routing to core handler");
-            bridge.route(Request::Core, prompt).map_err(|e| {
-                error!("Core routing failed: {}", e);
+            // Handle Core command generation with alternatives and explain support
+            info!("Processing core command generation request");
+            debug!("Prompt: {}", sanitize_for_logging(prompt, 50));
+            debug!("Alternatives: {}, Explain: {}", alternatives, explain);
+
+            // Load configuration
+            debug!("Loading configuration");
+            let config = Config::load().map_err(|e| {
+                error!("Configuration loading failed: {}", e);
+                crate::error::AppError::InvalidInput(format!("Config error: {}", e))
+            })?;
+
+            // Validate configuration
+            config.validate().map_err(|e| {
+                error!("Configuration validation failed: {}", e);
+                eprintln!("❌ Configuration Error: {}", e);
+                eprintln!();
+                eprintln!("To configure Eidos, choose one of:");
+                eprintln!("  1. Environment variables:");
+                eprintln!("     export EIDOS_MODEL_PATH=/path/to/model.onnx");
+                eprintln!("     export EIDOS_TOKENIZER_PATH=/path/to/tokenizer.json");
+                eprintln!();
+                eprintln!("  2. Config file (./eidos.toml or ~/.config/eidos/eidos.toml):");
+                eprintln!("     model_path = \"/path/to/model.onnx\"");
+                eprintln!("     tokenizer_path = \"/path/to/tokenizer.json\"");
+                eprintln!();
+                eprintln!("  3. See docs/MODEL_GUIDE.md for training your own model");
+                crate::error::AppError::InvalidInput(e.to_string())
+            })?;
+
+            debug!("Configuration valid, loading model");
+
+            // Get Core instance from cache (or load if not cached)
+            let model_path_str = config
+                .model_path
+                .to_str()
+                .ok_or_else(|| {
+                    crate::error::AppError::InvalidInput(
+                        "Invalid model path encoding".to_string(),
+                    )
+                })?;
+            let tokenizer_path_str = config
+                .tokenizer_path
+                .to_str()
+                .ok_or_else(|| {
+                    crate::error::AppError::InvalidInput(
+                        "Invalid tokenizer path encoding".to_string(),
+                    )
+                })?;
+
+            let core = get_or_load_model(model_path_str, tokenizer_path_str).map_err(|e| {
+                error!("Model loading failed: {}", e);
                 crate::error::AppError::InvalidInput(e)
-            })
+            })?;
+
+            // Generate alternatives if requested
+            if alternatives > 1 {
+                info!("Generating {} alternative commands", alternatives);
+                match core.generate_alternatives(prompt, alternatives) {
+                    Ok(commands) => {
+                        println!("Generated {} alternatives:", commands.len());
+                        for (i, cmd) in commands.iter().enumerate() {
+                            if core.is_safe_command(cmd) {
+                                println!("  {}. {}", i + 1, cmd);
+                                if explain {
+                                    if let Ok(explanation) = core.explain_command(cmd) {
+                                        println!("     → {}", explanation);
+                                    }
+                                }
+                            } else {
+                                warn!("Alternative {} failed safety check: {}", i + 1, cmd);
+                            }
+                        }
+                        info!("Alternatives generated successfully");
+                        Ok(())
+                    }
+                    Err(e) => {
+                        error!("Alternative generation failed: {}", e);
+                        eprintln!("❌ Error: {}", e);
+                        Err(crate::error::AppError::InvalidInput(e.to_string()))
+                    }
+                }
+            } else {
+                // Generate single command
+                match core.generate_command(prompt) {
+                    Ok(command) => {
+                        // Validate that generated command is safe
+                        if core.is_safe_command(&command) {
+                            info!("Command generated and validated successfully");
+                            debug!("Generated command: {}", command);
+                            println!("{}", command);
+
+                            // Add explanation if requested
+                            if explain {
+                                match core.explain_command(&command) {
+                                    Ok(explanation) => {
+                                        println!("\nExplanation: {}", explanation);
+                                    }
+                                    Err(e) => {
+                                        warn!("Failed to generate explanation: {}", e);
+                                    }
+                                }
+                            }
+
+                            Ok(())
+                        } else {
+                            error!("Generated command failed safety validation");
+                            eprintln!("❌ Safety Error: Generated command is not safe to execute");
+                            eprintln!("Generated: {}", command);
+                            eprintln!();
+                            eprintln!(
+                                "The model generated a command that contains dangerous patterns."
+                            );
+                            eprintln!("This is a safety feature to prevent harmful commands.");
+                            Err(crate::error::AppError::InvalidInput(
+                                "Generated command failed safety validation".to_string(),
+                            ))
+                        }
+                    }
+                    Err(e) => {
+                        error!("Inference failed: {}", e);
+                        eprintln!("❌ Error: {}", e);
+                        eprintln!();
+                        eprintln!("This could be due to:");
+                        eprintln!("  - Invalid or corrupted model file");
+                        eprintln!("  - Incompatible model format");
+                        eprintln!("  - Prompt too long or malformed");
+                        Err(crate::error::AppError::InvalidInput(e.to_string()))
+                    }
+                }
+            }
         }
         Commands::Translate { ref text } => {
             // Validate input (max 5000 chars for translation)

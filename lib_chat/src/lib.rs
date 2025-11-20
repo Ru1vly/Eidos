@@ -12,8 +12,17 @@ use tokio::runtime::Runtime;
 ///
 /// Creating a new Runtime on every request is expensive (~10-50ms overhead).
 /// This static runtime is created once and reused for all chat operations.
-static RUNTIME: Lazy<Runtime> =
-    Lazy::new(|| Runtime::new().expect("Failed to create tokio runtime"));
+///
+/// # Panics
+/// Will panic if the tokio runtime cannot be created. This is a critical failure
+/// that indicates system resource exhaustion or misconfiguration.
+static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
+    Runtime::new().expect(
+        "FATAL: Failed to create tokio runtime. \
+         This likely indicates system resource exhaustion. \
+         Check available memory and file descriptors.",
+    )
+});
 
 pub struct Chat {
     client: Option<ApiClient>,
@@ -34,11 +43,11 @@ impl Chat {
     }
 
     /// Create a Chat instance with a specific provider
-    pub fn with_provider(provider: ApiProvider) -> Self {
-        Self {
-            client: Some(ApiClient::new(provider)),
+    pub fn with_provider(provider: ApiProvider) -> Result<Self> {
+        Ok(Self {
+            client: Some(ApiClient::new(provider)?),
             history: ConversationHistory::default(),
-        }
+        })
     }
 
     /// Send a message and get a response (async)
@@ -49,7 +58,9 @@ impl Chat {
             .ok_or_else(|| error::ChatError::NoProviderError)?;
 
         // Add user message to history
-        self.history.add_user_message(message);
+        self.history
+            .add_user_message(message)
+            .map_err(|e| error::ChatError::InvalidInput(e))?;
 
         // Send to API with full conversation history
         let response = client
@@ -57,7 +68,9 @@ impl Chat {
             .await?;
 
         // Add assistant response to history
-        self.history.add_assistant_message(&response);
+        self.history
+            .add_assistant_message(&response)
+            .map_err(|e| error::ChatError::InvalidInput(e))?;
 
         Ok(response)
     }
@@ -73,8 +86,10 @@ impl Chat {
     }
 
     /// Add a system message to guide the conversation
-    pub fn set_system_prompt(&mut self, prompt: &str) {
-        self.history.add_system_message(prompt);
+    pub fn set_system_prompt(&mut self, prompt: &str) -> Result<()> {
+        self.history
+            .add_system_message(prompt)
+            .map_err(|e| error::ChatError::InvalidInput(e))
     }
 
     /// Clear conversation history

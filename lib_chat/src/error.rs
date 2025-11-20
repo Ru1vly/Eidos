@@ -26,6 +26,9 @@ pub enum ChatError {
 
     #[error("Environment variable not set: {0}")]
     EnvError(String),
+
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
 }
 
 pub type Result<T> = std::result::Result<T, ChatError>;
